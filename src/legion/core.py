@@ -10,6 +10,12 @@ Legion Core Module - руковиндица работы многоагентн�
 import logging
 from typing import List, Dict, Any, Optional
 from abc import ABC
+from .database import LegionDatabase
+import os
+from dotenv import load_dotenv
+
+# Загрузка переменных окружения
+load_dotenv()
 
 # Конфигурация логирования
 logger = logging.getLogger(__name__)
@@ -39,6 +45,14 @@ class LegionCore:
         self.agents: Dict[str, Any] = {}
         self.is_running: bool = False
         self.config: Dict[str, Any] = config or {}
+
+                # Подключение к БД
+        try:
+            self.db = LegionDatabase()
+            logger.info("Database connection established")
+        except Exception as e:
+            logger.warning(f"Database not available: {e}")
+            self.db = None
         
         logger.info("LegionCore initialized")
     
@@ -53,6 +67,17 @@ class LegionCore:
         # Простая регистрация агента
         self.agents[agent_id] = agent
         logger.info(f"Agent '{agent_id}' registered")
+
+            # Синхронизация с БД
+        if self.db:
+            try:
+                self.db.register_agent(
+                    agent_id=agent_id,
+                    name=agent.__class__.__name__,
+                    config=agent.config
+                )
+            except Exception as e:
+                logger.error(f"Failed to sync agent to database: {e}")
     
     def dispatch_task(self, task_id: str, task_data: Dict[str, Any]) -> None:
         """

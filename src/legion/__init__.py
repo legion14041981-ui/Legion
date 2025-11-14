@@ -5,12 +5,11 @@ Legion Framework - многоагентная система координац�
 
 - Координатор (LegionCore) - управление агентами и их жизненным циклом
 - Базовый класс агента (LegionAgent) - интерфейс для создания агентов
-- Специализированные агенты (EmailAgent, GoogleSheetsAgent)
-"""
+- Специализированные агенты (EmailAgent, GoogleSheetsAgent, DataAgent)"""
 
 from .core import LegionCore
 from .agents import LegionAgent
-from .agents import EmailAgent, GoogleSheetsAgent
+from .agents import EmailAgent, GoogleSheetsAgent, DataAgentfrom .database import LegionDat
 from .database import LegionDatabase
 from .queue import TaskQueue
 from .logging_config import LegionLogger, setup_logging
@@ -21,6 +20,7 @@ __all__ = [
     "LegionAgent",
     "EmailAgent",
     "GoogleSheetsAgent",
+    "DataAgent",
     "LegionDatabase",
     "TaskQueue",
     "LegionLogger",

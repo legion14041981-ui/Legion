@@ -8,6 +8,7 @@ Legion Framework - многоагентная система координац�
 
 from .core import LegionCore
 from .agents import LegionAgent
+from .database import LegionDatabase
 
 __version__ = "0.1.0"
-__all__ = ["LegionCore", "LegionAgent"]
+__all__ = ["LegionCore", "LegionAgent, "LegionDatabase"]]

@@ -9,6 +9,8 @@ Legion Framework - многоагентная система координац�
 from .core import LegionCore
 from .agents import LegionAgent
 from .database import LegionDatabase
+from .queue import TaskQueue
+from .logging_config import LegionLogger, setup_logging
 
 __version__ = "0.1.0"
-__all__ = ["LegionCore", "LegionAgent, "LegionDatabase"]]
+__all__ = ["LegionCore", "LegionAgent", "LegionDatabase", "TaskQueue", "LegionLogger", "setup_logging"]

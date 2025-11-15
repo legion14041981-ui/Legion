@@ -1,16 +1,46 @@
-# 🤖 Legion
+# 🤖 Legion AI v2.0
 
-> **Мультиагентный фреймворк для диспетчеризации и координации виртуального легиона ИИ-агентов**
+> **Мультиагентный AI-фреймворк с браузерной автоматизацией и Model Context Protocol**
 
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Supabase](https://img.shields.io/badge/Supabase-Ready-green)](https://supabase.com)
+[![AI-Powered](https://img.shields.io/badge/AI-GPT--5.1-orange)](https://openai.com)
+[![MCP](https://img.shields.io/badge/MCP-Compatible-blue)](https://modelcontextprotocol.io)
+
+## 🎉 Что нового в v2.0
+
+**Legion v2.0** - революционное обновление с интеграцией передовых AI-технологий 2025 года:
+
+### 🌟 Ключевые новинки
+
+- 🔌 **Model Context Protocol (MCP)** - стандарт интеграции с AI (Claude, GPT, etc.)
+- 🌐 **Playwright Automation** - кросс-браузерная автоматизация (Chromium/Firefox/WebKit)
+- 🤖 **GPT-5.1-Codex Integration** - генерация скриптов из естественного языка
+- 🎭 **Multi-Agent Orchestration** - координация через LangGraph
+- 🔄 **Self-Healing** - автоматическое восстановление при ошибках
+
+> 📖 **[Quick Start Guide](docs/AI_ENHANCEMENTS_QUICKSTART.md)** | 📚 **[Full Documentation](https://www.notion.so/2ac65511388d815fa690c20766ed1206)**
+
+---
 
 ## 📋 Описание
 
-Legion - это современный мультиагентный фреймворк на Python, предназначенный для создания, управления и координации распределённых ИИ-агентов. Проект интегрирован с Supabase для облачного хранения данных и Edge Functions для серверлесс-обработки задач.
+Legion - это AI-powered мультиагентный фреймворк на Python для создания, управления и координации распределённых ИИ-агентов с возможностями браузерной автоматизации, интеллектуального планирования задач и self-healing.
 
-### ✨ Ключевые возможности
+### ✨ Основные возможности
+
+#### 🆕 Новое в v2.0
+
+- 🔌 **MCP Server** - стандартизированный протокол для AI tool integration
+- 🌐 **Browser Automation** - полноценная автоматизация через Playwright
+- 🤖 **AI Script Generation** - natural language → Playwright code
+- 🎭 **Multi-Agent System** - Planning + Execution + Monitoring agents
+- 🔄 **Self-Healing** - AI-powered восстановление при сбоях
+- 📊 **Tool Registry** - масштабируется до 100+ инструментов
+- 🔐 **Sandboxed Execution** - безопасное выполнение кода
+
+#### Базовые функции
 
 - 🔄 **Асинхронная обработка задач** - полная поддержка async/await
 - 🗄️ **Интеграция с Supabase** - облачная PostgreSQL база данных
@@ -19,55 +49,89 @@ Legion - это современный мультиагентный фреймв
 - 🔍 **Мониторинг агентов** - отслеживание статуса и активности в реальном времени
 - 🎯 **Гибкая архитектура** - легко расширяемая система агентов
 
-## 🏗️ Архитектура
+## 🏗️ Архитектура v2.0
 
 ```
 Legion/
 ├── src/legion/
-│   ├── __init__.py       # Экспорты модулей
-│   ├── core.py           # LegionCore - главный координатор
-│   ├── agents.py         # Базовый класс LegionAgent
-│   ├── database.py       # Интеграция с Supabase
-│   └── queue.py          # TaskQueue для управления задачами
-├── tests/                # Тесты
-├── docs/                 # Документация
-├── requirements.txt      # Зависимости
-└── .env.example          # Шаблон конфигурации
+│   ├── core.py                  # LegionCore - главный координатор
+│   ├── agents.py                # Базовый класс LegionAgent
+│   ├── database.py              # Интеграция с Supabase
+│   ├── queue.py                 # TaskQueue для управления задачами
+│   │
+│   ├── mcp/                     # 🆕 Model Context Protocol
+│   │   ├── server.py            #     MCP сервер
+│   │   ├── client.py            #     MCP клиент
+│   │   ├── tools.py             #     Tool registry
+│   │   └── executor.py          #     Code execution engine
+│   │
+│   ├── ai/                      # 🆕 AI Integration
+│   │   └── script_generator.py  #     GPT-5.1-Codex генератор
+│   │
+│   ├── orchestration/           # 🆕 Multi-Agent Orchestration
+│   │   ├── orchestrator.py      #     LangGraph orchestrator
+│   │   ├── agents.py            #     Specialized agents
+│   │   └── patterns.py          #     Execution patterns
+│   │
+│   ├── agents/                  # Agent implementations
+│   │   └── browser_agent.py     # 🆕 Playwright browser agent
+│   │
+│   └── integration.py           # 🆕 Unified LegionAISystem
+│
+├── examples/
+│   └── ai_automation_demo.py    # 🆕 AI automation demo
+├── tests/
+│   └── test_integration.py      # 🆕 Integration tests
+├── docs/
+│   └── AI_ENHANCEMENTS_QUICKSTART.md  # 🆕 Quick start guide
+├── requirements.txt             # Dependencies (updated)
+└── .env.example                 # Configuration (updated)
 ```
 
 ## 🚀 Быстрый старт
 
-### Установка
+### Вариант 1: Базовая установка (v1.0 функциональность)
 
 ```bash
 # Клонировать репозиторий
 git clone https://github.com/legion14041981-ui/Legion.git
 cd Legion
 
-# Создать виртуальное окружение (Windows)
+# Создать виртуальное окружение
 python -m venv venv
-.\venv\Scripts\Activate
+source venv/bin/activate  # Linux/Mac
+# или
+venv\Scripts\activate     # Windows
 
 # Установить зависимости
 pip install -r requirements.txt
 ```
 
-### Конфигурация
-
-1. Скопировать `.env.example` в `.env`:
+### Вариант 2: AI-Enhanced установка (v2.0 функциональность) ⭐
 
 ```bash
-copy .env.example .env
+# Checkout AI enhancements branch
+git checkout feature/ai-enhancements-2025
+
+# Установить зависимости
+pip install -r requirements.txt
+
+# Установить Playwright browsers
+playwright install
+
+# Настроить .env
+cp .env.example .env
+# Добавить OPENAI_API_KEY в .env
+
+# Запустить demo
+python examples/ai_automation_demo.py
 ```
 
-2. Заполнить переменные окружения:
+> 📖 **Полная инструкция**: [AI Enhancements Quick Start](docs/AI_ENHANCEMENTS_QUICKSTART.md)
 
-```env
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your-anon-key
-```
+## 💡 Примеры использования
 
-### Пример использования
+### Пример 1: Базовая функциональность (v1.0)
 
 ```python
 import asyncio
@@ -75,85 +139,143 @@ from legion import LegionCore
 from legion.queue import TaskQueue
 
 async def main():
-    # Инициализация Legion
     core = LegionCore()
-    
-    # Создание Task Queue
     queue = TaskQueue(core.db)
     
-    # Добавление задачи
     task_id = await queue.add_task(
         task_data={'action': 'process_data', 'payload': 'example'},
         agent_id='agent-1'
     )
     
-    print(f"Task {task_id} created")
-    
-    # Запуск обработки очереди
     await queue.start()
-    
-    # Работа в течение 30 секунд
     await asyncio.sleep(30)
-    
-    # Остановка
     await queue.stop()
 
-if __name__ == '__main__':
-    asyncio.run(main())
+asyncio.run(main())
+```
+
+### Пример 2: AI-Powered Automation (v2.0) 🆕⭐
+
+```python
+import asyncio
+from src.legion.integration import LegionAISystem
+
+async def main():
+    # Инициализация AI системы
+    system = LegionAISystem()
+    
+    # Выполнение задачи на естественном языке
+    result = await system.execute_task(
+        description="Перейди на Google и найди 'AI automation'",
+        context={'url': 'https://google.com'}
+    )
+    
+    print(f"Результат: {result}")
+    
+    await system.cleanup()
+
+asyncio.run(main())
+```
+
+### Пример 3: MCP Tools (v2.0) 🆕
+
+```python
+from src.legion.integration import LegionAISystem
+
+system = LegionAISystem()
+
+# Список доступных инструментов
+tools = system.tool_registry.list_tools()
+for tool in tools:
+    print(f"{tool['name']}: {tool['description']}")
+
+# Прямое выполнение инструмента
+result = await system.tool_registry.execute(
+    'browser_navigate',
+    url='https://example.com'
+)
+```
+
+### Пример 4: Multi-Agent Orchestration (v2.0) 🆕
+
+```python
+from src.legion.orchestration import MultiAgentOrchestrator
+
+orchestrator = MultiAgentOrchestrator()
+
+# Hierarchical pattern: Planning Agent → Execution Agent
+orchestrator.register_agent('planning', planning_agent, 'planning')
+orchestrator.register_agent('execution', exec_agent, 'execution')
+orchestrator.build_hierarchical_workflow('planning', ['execution'])
+
+result = await orchestrator.execute({
+    'description': 'Сложная многошаговая задача',
+    'url': 'https://example.com'
+})
 ```
 
 ## 🛠️ Компоненты
 
-### LegionCore
+### Базовые компоненты (v1.0)
+
+#### LegionCore
 
 Главный координатор системы, управляет агентами и их жизненным циклом.
 
-```python
-from legion import LegionCore, LegionAgent
-
-core = LegionCore()
-
-# Регистрация агента
-my_agent = MyCustomAgent()
-core.register_agent('agent-1', my_agent)
-
-# Запуск системы
-core.start()
-```
-
-### LegionAgent
+#### LegionAgent
 
 Базовый класс для создания собственных агентов.
 
-```python
-from legion import LegionAgent
-
-class MyAgent(LegionAgent):
-    async def execute(self, task):
-        # Ваша логика обработки
-        print(f"Processing task: {task}")
-        return {'status': 'completed'}
-```
-
-### TaskQueue
+#### TaskQueue
 
 Система управления очередями задач с автоматической обработкой.
 
-```python
-from legion.queue import TaskQueue
+### Новые компоненты (v2.0) 🆕
 
-queue = TaskQueue(database)
+#### LegionAISystem
 
-# Добавить задачу
-task_id = await queue.add_task(
-    task_data={'type': 'email', 'to': 'user@example.com'},
-    agent_id='email-agent'
-)
+Унифицированная AI-система, объединяющая все компоненты:
 
-# Получить статистику
-stats = queue.get_queue_stats()
-print(f"Pending tasks: {stats['pending_count']}")
-```
+- MCP Server для tool integration
+- AI Script Generator для генерации кода
+- Browser Agent для автоматизации
+- Orchestrator для координации
+
+#### MCP Server
+
+Model Context Protocol сервер для стандартизированной интеграции с AI:
+
+- Tool registration & discovery
+- Async tool execution
+- Resource management
+- HMAC security
+
+#### PlaywrightBrowserAgent
+
+Кросс-браузерный агент автоматизации:
+
+- Chromium, Firefox, WebKit support
+- Auto-wait for elements
+- Screenshot & PDF generation
+- Self-healing on selector changes
+
+#### ScriptGenerator
+
+AI-powered генератор Playwright скриптов:
+
+- Natural language → code
+- Syntax validation
+- Self-healing script repair
+- Context-aware generation
+
+#### MultiAgentOrchestrator
+
+Координатор множественных агентов:
+
+- **PlanningAgent** - декомпозиция задач
+- **ExecutionAgent** - выполнение браузерной автоматизации
+- **MonitoringAgent** - обнаружение ошибок и восстановление
+- 4 паттерна оркестрации (Sequential, Parallel, Hierarchical, Handoff)
 
 ## ☁️ Supabase Integration
 
@@ -161,113 +283,91 @@ print(f"Pending tasks: {stats['pending_count']}")
 
 Проект включает 2 развёрнутые Edge Functions:
 
-#### 1. process-task
+1. **process-task** - Обработка задач (запуск/завершение)
+2. **get-pending-tasks** - Получение списка задач в очереди
 
-Обработка задач (запуск/завершение).
-
-**Endpoint**: `https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/process-task`
-
-**Пример использования**:
-
-```bash
-# Запустить задачу
-curl -X POST 'https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/process-task' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "task_id": "task-123",
-    "agent_id": "agent-1",
-    "action": "start"
-  }'
-
-# Завершить задачу
-curl -X POST 'https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/process-task' \
-  -H 'Content-Type: application/json' \
-  -d '{
-    "task_id": "task-123",
-    "agent_id": "agent-1",
-    "action": "complete"
-  }'
-```
-
-#### 2. get-pending-tasks
-
-Получение списка задач в очереди.
-
-**Endpoint**: `https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/get-pending-tasks`
-
-**Пример использования**:
-
-```bash
-# Получить все задачи
-curl 'https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/get-pending-tasks'
-
-# Фильтр по агенту
-curl 'https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/get-pending-tasks?agent_id=agent-1'
-```
+**Базовый URL**: `https://hdwvhqxyzcgkrkosbuzk.supabase.co/functions/v1/`
 
 ### База данных
 
-Структура таблиц:
-
-**agents** - информация об агентах
-```sql
-CREATE TABLE agents (
-    id BIGSERIAL PRIMARY KEY,
-    agent_id TEXT UNIQUE NOT NULL,
-    name TEXT,
-    status TEXT DEFAULT 'Not started',
-    webhook_url TEXT,
-    last_activity TIMESTAMP WITH TIME ZONE,
-    error_count INTEGER DEFAULT 0,
-    capabilities JSONB,
-    config JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-```
-
-**tasks** - очередь задач
-```sql
-CREATE TABLE tasks (
-    id BIGSERIAL PRIMARY KEY,
-    task_id TEXT UNIQUE NOT NULL,
-    agent_id TEXT REFERENCES agents(agent_id),
-    task_data JSONB,
-    status TEXT DEFAULT 'pending',
-    result JSONB,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-    completed_at TIMESTAMP WITH TIME ZONE
-);
-```
+- **agents** - информация об агентах
+- **tasks** - очередь задач
+- **mcp_sessions** 🆕 - логи MCP вызовов
+- **legion_memory** - долгосрочная память агентов
 
 ## 📦 Зависимости
 
-- `supabase>=2.9.0` - Supabase Python клиент
-- `python-dotenv>=1.0.1` - Управление переменными окружения
-- `httpx>=0.27.0` - HTTP клиент для async запросов
+### Базовые (v1.0)
+
+- `supabase>=2.9.0`
+- `python-dotenv>=1.0.1`
+- `httpx>=0.27.0`
+- Google Sheets integration packages
+
+### AI Enhancements (v2.0) 🆕
+
+- `playwright==1.45.0` - браузерная автоматизация
+- `openai>=1.0.0` - GPT-5.1-Codex
+- `langgraph>=0.1.0` - multi-agent orchestration
+- `fastapi==0.104.1` - MCP server
+- `pytest-playwright>=0.4.0` - тестирование
+- `restrictedpython>=6.2` - безопасное выполнение кода
 
 ## 🔧 Разработка
 
 ### Запуск тестов
 
 ```bash
+# Базовые тесты
 pytest tests/
+
+# AI integration тесты (требует OPENAI_API_KEY)
+pytest tests/test_integration.py -v
 ```
 
-### Структура проекта
+### Запуск демо
 
-- `src/legion/` - основной код фреймворка
-- `tests/` - unit и интеграционные тесты
-- `docs/` - документация проекта
-- `.github/workflows/` - CI/CD конфигурация
+```bash
+# AI automation demo
+python examples/ai_automation_demo.py
+```
 
 ## 🗺️ Roadmap
 
-- [x] Добавить конкретные реализации агентов (EmailAgent ✅, GoogleSheetsAgent ✅, DataAgent)- [ ] Интегрировать Supabase Realtime для live-мониторинга
-- [ ] Создать веб-интерфейс для управления
-- [x] Добавить систему логирования ✅
-- [x] Интеграция с Google Sheets ✅- [ ] Webhook система для внешних агентов
-- [ ] Метрики и аналитика
+### v1.0 (Завершено)
+
+- [x] Базовая координация агентов
+- [x] Supabase integration
+- [x] Task Queue
+- [x] Google Sheets integration
+- [x] Логирование
+- [x] Edge Functions
+
+### v2.0 (Завершено) 🆕
+
+- [x] Model Context Protocol
+- [x] Playwright browser automation
+- [x] GPT-5.1-Codex integration
+- [x] Multi-agent orchestration
+- [x] Self-healing capabilities
+- [x] AI script generation
+
+### v3.0 (В разработке)
+
+- [ ] Supabase Realtime для live-мониторинга
+- [ ] Веб-интерфейс для управления
+- [ ] Webhook система для внешних агентов
+- [ ] Edge AI integration (ONNX Runtime)
+- [ ] Prometheus/Grafana мониторинг
+- [ ] Quantum-ready interfaces
+- [ ] Advanced self-healing with pattern recognition
+
+## 📚 Документация
+
+- **[Quick Start Guide](docs/AI_ENHANCEMENTS_QUICKSTART.md)** - быстрый старт с v2.0
+- **[Notion Documentation](https://www.notion.so/2ac65511388d815fa690c20766ed1206)** - полная документация
+- **[Pull Request #1](https://github.com/legion14041981-ui/Legion/pull/1)** - детали AI enhancements
+- **API Documentation** - генерируется через `system.tool_registry.generate_api_documentation()`
 
 ## 🤝 Вклад в проект
 
@@ -281,13 +381,25 @@ pytest tests/
 
 ## 📄 Лицензия
 
-MIT License - см. [LICENSE](LICENSE) файл для деталей.
+MIT License - см. LICENSE файл для деталей.
 
 ## 📞 Контакты
 
-- GitHub: [@legion14041981-ui](https://github.com/legion14041981-ui)
-- Supabase Project: [LEGION](https://supabase.com/dashboard/project/hdwvhqxyzcgkrkosbuzk)
+- **GitHub**: [@legion14041981-ui](https://github.com/legion14041981-ui)
+- **Repository**: [Legion](https://github.com/legion14041981-ui/Legion)
+- **Supabase Project**: [hdwvhqxyzcgkrkosbuzk](https://supabase.com/dashboard/project/hdwvhqxyzcgkrkosbuzk)
+- **Documentation**: [Notion](https://www.notion.so/2ac65511388d815fa690c20766ed1206)
+
+## 🏆 Credits
+
+Legion v2.0 built with cutting-edge technologies from November 2025:
+
+- **OpenAI GPT-5.1** (released Nov 12, 2025)
+- **Anthropic MCP** (Model Context Protocol, Nov 2025)
+- **Playwright** (cross-browser automation standard)
+- **LangGraph** (Microsoft multi-agent framework)
+- **Google Willow** (quantum computing inspiration)
 
 ---
 
-**Legion** - создавайте умных агентов легко 🚀
+**Legion v2.0** - AI-powered automation легко 🚀🤖

@@ -1,0 +1,45 @@
+name: Walbi Automation
+
+on:
+  workflow_dispatch:
+    inputs:
+      task_type:
+        description: 'Task to execute'
+        required: true
+        type: choice
+        options:
+          - get_portfolio
+          - get_market_data
+          - create_widgets
+      dry_run:
+        description: 'Dry run mode'
+        required: false
+        type: boolean
+        default: true
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  walbi-automation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+    
+    - name: Install dependencies
+      run: |
+        pip install playwright cryptography python-dotenv
+        playwright install chromium
+        playwright install-deps chromium
+    
+    - name: Run automation
+      env:
+        GOOGLE_EMAIL: ${{ secrets.GOOGLE_EMAIL }}
+        GOOGLE_PASSWORD: ${{ secrets.GOOGLE_PASSWORD }}
+      run: |
+        python scripts/walbi_automation.py

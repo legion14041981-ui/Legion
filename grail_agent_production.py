@@ -4,7 +4,6 @@ Grail Agent Production - Production-ready trading agent with Supabase logging
 Author: Legion Framework
 Date: 2025-11-17
 """
-
 import os
 import sys
 import argparse
@@ -26,6 +25,7 @@ class GrailAgentProduction:
         self.mode = mode
         self.bankroll = bankroll
         self.trades_executed = 0
+        self.predictions_logged = 0
         self.total_profit = 0.0
         
         # Setup logging
@@ -64,6 +64,27 @@ class GrailAgentProduction:
         except Exception as e:
             self.logger.error(f"Failed to initialize Supabase: {e}")
             return None
+    
+    def log_prediction_to_supabase(self, signal: Dict):
+        """Log prediction (signal) to Supabase"""
+        if not self.supabase:
+            return
+        
+        try:
+            prediction_data = {
+                'event_name': f"{signal['signal']}_{signal['asset']}",
+                'signal': signal['signal'],
+                'asset': signal['asset'],
+                'confidence': float(signal['confidence']),
+                'mode': self.mode,
+                'timestamp': signal['timestamp']
+            }
+            
+            self.supabase.table('predictions').insert(prediction_data).execute()
+            self.predictions_logged += 1
+            self.logger.info(f"Prediction logged to Supabase: {signal['signal']} {signal['asset']} (confidence: {signal['confidence']:.2f})")
+        except Exception as e:
+            self.logger.error(f"Failed to log prediction to Supabase: {e}")
     
     def log_trade_to_supabase(self, trade_data: Dict):
         """Log trade to Supabase"""
@@ -139,11 +160,14 @@ class GrailAgentProduction:
                 # Generate signal
                 signal = self.generate_signal()
                 
+                # LOG ALL PREDICTIONS (demo mode improvement)
+                self.log_prediction_to_supabase(signal)
+                
                 # Execute trade if confidence > threshold
                 if signal['confidence'] > 0.70:
                     trade = self.execute_trade(signal)
                 else:
-                    self.logger.info(f"Signal confidence too low ({signal['confidence']:.2f}), skipping")
+                    self.logger.info(f"Signal confidence too low ({signal['confidence']:.2f}), skipping trade")
                 
                 # Safety: wait between trades
                 time.sleep(1)
@@ -160,16 +184,17 @@ class GrailAgentProduction:
         roi = (self.total_profit / (self.bankroll - self.total_profit)) * 100 if self.bankroll != self.total_profit else 0
         
         summary = f"""
-        ═══════════════════════════════════════════
-        📊 GRAIL AGENT SESSION SUMMARY
-        ═══════════════════════════════════════════
-        Mode:            {self.mode.upper()}
-        Trades Executed: {self.trades_executed}
-        Total P/L:       ${self.total_profit:.2f}
-        Final Bankroll:  ${self.bankroll:.2f}
-        ROI:             {roi:.2f}%
-        ═══════════════════════════════════════════
-        """
+═══════════════════════════════════════════
+📊 GRAIL AGENT SESSION SUMMARY
+═══════════════════════════════════════════
+Mode: {self.mode.upper()}
+Predictions Logged: {self.predictions_logged}
+Trades Executed: {self.trades_executed}
+Total P/L: ${self.total_profit:.2f}
+Final Bankroll: ${self.bankroll:.2f}
+ROI: {roi:.2f}%
+═══════════════════════════════════════════
+"""
         
         self.logger.info(summary)
         print(summary)
@@ -177,11 +202,11 @@ class GrailAgentProduction:
 def main():
     parser = argparse.ArgumentParser(description='Grail Agent Production')
     parser.add_argument('--mode', type=str, default='demo', choices=['demo', 'live'],
-                       help='Trading mode: demo (virtual) or live (real)')
+                        help='Trading mode: demo (virtual) or live (real)')
     parser.add_argument('--bankroll', type=float, default=100,
-                       help='Initial bankroll amount')
+                        help='Initial bankroll amount')
     parser.add_argument('--num-predictions', type=int, default=10,
-                       help='Number of predictions to generate')
+                        help='Number of predictions to generate')
     
     args = parser.parse_args()
     

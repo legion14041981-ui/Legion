@@ -9,7 +9,7 @@ Legion Framework - многоагентная система координац�
 
 from .core import LegionCore
 from .agents import LegionAgent
-from .agents import EmailAgent, GoogleSheetsAgent, DataAgentfrom .database import LegionDat
+from .agents import EmailAgent, GoogleSheetsAgent, DataAgent
 from .database import LegionDatabase
 from .queue import TaskQueue
 from .logging_config import LegionLogger, setup_logging

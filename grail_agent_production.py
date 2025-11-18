@@ -68,7 +68,6 @@ class GrailAgentProduction:
                 'asset': signal['asset'],
                 'confidence': float(signal['confidence']),
                 'mode': self.mode,
-                'timestamp': signal['timestamp']
             }
             self.supabase.table('predictions').insert(prediction_data).execute()
             self.predictions_logged += 1
@@ -111,14 +110,7 @@ class GrailAgentProduction:
         self.bankroll += profit_loss
         trade_data = {
             'id': trade_id,
-            'signal': signal['signal'],
-            'asset': signal['asset'],
-            'confidence': signal['confidence'],
-            'position_size': position_size,
             'profit_loss': profit_loss,
-            'bankroll_after': self.bankroll,
-            'mode': self.mode,
-            'timestamp': datetime.now().isoformat()
         }
         self.log_trade_to_supabase(trade_data)
         self.logger.info(

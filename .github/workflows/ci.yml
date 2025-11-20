@@ -2,10 +2,8 @@ name: CI
 
 on:
   push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
-
+    branches: [ main, develop, feature/os-integration-v2.2 ]  pull_request:
+    branches: [ main, feature/os-integration-v2.2 ]
 jobs:
   test:
     runs-on: ubuntu-latest

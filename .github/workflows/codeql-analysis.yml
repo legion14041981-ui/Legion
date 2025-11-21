@@ -1,0 +1,107 @@
+name: CodeQL Security Analysis
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**.py'
+      - '.github/workflows/codeql-analysis.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - '**.py'
+  schedule:
+    - cron: '30 2 * * 0'
+
+jobs:
+  analyze:
+    name: CodeQL Analysis
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['python']
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v2
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-and-quality
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v2
+        with:
+          category: "/language:${{ matrix.language }}"
+          wait-for-processing: true
+
+      - name: Upload SARIF results
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: results.sarif
+          wait-for-processing: true
+
+  bandit:
+    name: Bandit Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install Bandit
+        run: pip install bandit
+
+      - name: Run Bandit scan
+        run: bandit -r src/ -f json -o bandit-report.json || true
+        continue-on-error: true
+
+      - name: Upload Bandit results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: bandit-report
+          path: bandit-report.json
+
+  lint:
+    name: Python Code Quality
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+          cache: 'pip'
+
+      - name: Install linters
+        run: pip install pylint flake8 mypy
+
+      - name: Run Pylint
+        run: pylint src/ --exit-zero || true
+        continue-on-error: true
+
+      - name: Run Flake8
+        run: flake8 src/ --max-line-length=120 --exit-zero || true
+        continue-on-error: true

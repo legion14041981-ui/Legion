@@ -1,0 +1,36 @@
+# Legion Project CODEOWNERS
+# Define code ownership and require reviews for critical files
+
+# Global owner for all repository files
+* @legion14041981-ui
+
+# Core framework - requires review
+src/legion/ @legion14041981-ui
+
+# Production deployment - requires review
+grail_agent_production.py @legion14041981-ui
+
+# Configuration files - requires review
+.env.example @legion14041981-ui
+pytest.ini @legion14041981-ui
+setup.py @legion14041981-ui
+requirements.txt @legion14041981-ui
+
+# CI/CD workflows - requires review
+.github/workflows/ @legion14041981-ui
+
+# Documentation - standard review
+README.md @legion14041981-ui
+SECURITY.md @legion14041981-ui
+INFRASTRUCTURE_AUDIT_REPORT.md @legion14041981-ui
+
+# Tests - standard review
+tests/ @legion14041981-ui
+
+# Emergency procedures
+.github/EMERGENCY_STOP.md @legion14041981-ui
+DEPLOYMENT_CHECKLIST.md @legion14041981-ui
+
+# Security files - critical
+.gitignore @legion14041981-ui
+EMERGENCY_STOP.md @legion14041981-ui

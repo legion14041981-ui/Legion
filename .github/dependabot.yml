@@ -1,0 +1,60 @@
+version: 2
+updates:
+  # Enable version updates for Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "03:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "legion14041981-ui"
+    labels:
+      - "dependencies"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps):"
+      prefix-development: "chore(deps-dev):"
+      include: "scope"
+    pull-request-branch-name:
+      separator: "/"
+    allow:
+      - dependency-type: "direct"
+      - dependency-type: "indirect"
+    ignore:
+      # Ignore major version updates for stable libraries
+      - dependency-name: "sqlalchemy"
+        update-types: ["version-update:semver-major"]
+    versioning-strategy: "auto"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "04:00"
+    reviewers:
+      - "legion14041981-ui"
+    labels:
+      - "ci"
+      - "automated"
+
+  # Enable security updates (runs daily, separate from scheduled updates)
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    security-updates-only: true
+    reviewers:
+      - "legion14041981-ui"
+    labels:
+      - "security"
+      - "automated"
+    pull-request-branch-name:
+      separator: "/"
+      prefix: "security"
+    commit-message:
+      prefix: "security:"
+      include: "scope"

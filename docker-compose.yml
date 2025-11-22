@@ -1,0 +1,105 @@
+version: '3.9'
+
+services:
+  # Main Legion MCP Server
+  legion:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: legion-mcp
+    ports:
+      - "8001:8001"
+      - "9090:9090"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=INFO
+      - MCP_HOST=0.0.0.0
+      - MCP_PORT=8001
+      - DATABASE_URL=postgresql://legion:legionpass@postgres:5432/legion
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./src:/app/src
+      - ./examples:/app/examples
+    networks:
+      - legion-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: legion-postgres
+    environment:
+      - POSTGRES_USER=legion
+      - POSTGRES_PASSWORD=legionpass
+      - POSTGRES_DB=legion
+      - POSTGRES_INITDB_ARGS=-c shared_buffers=256MB -c max_connections=200
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    networks:
+      - legion-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U legion"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Prometheus Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: legion-prometheus
+    ports:
+      - "9091:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+    networks:
+      - legion-net
+    restart: unless-stopped
+    depends_on:
+      - legion
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: legion-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - legion-net
+    restart: unless-stopped
+    depends_on:
+      - prometheus
+
+volumes:
+  postgres_data:
+    driver: local
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+
+networks:
+  legion-net:
+    driver: bridge

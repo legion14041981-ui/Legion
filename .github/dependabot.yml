@@ -1,0 +1,54 @@
+version: 2
+updates:
+  # Python dependencies
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Moscow"
+    open-pull-requests-limit: 10
+    reviewers:
+      - "legion14041981-ui"
+    labels:
+      - "dependencies"
+      - "security"
+      - "automated"
+    commit-message:
+      prefix: "chore(deps)"
+      include: "scope"
+    # Group patch updates together
+    groups:
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+    # Allow updates for all dependencies
+    allow:
+      - dependency-type: "all"
+    # Security updates always get separate PRs
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    # Rebase strategy for conflict resolution
+    rebase-strategy: "auto"
+
+  # GitHub Actions updates
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Moscow"
+    labels:
+      - "dependencies"
+      - "ci/cd"
+      - "automated"
+    commit-message:
+      prefix: "chore(ci)"
+      include: "scope"
+    reviewers:
+      - "legion14041981-ui"

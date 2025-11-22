@@ -1,1 +1,29 @@
-"""\nLegion Framework - многоагентная система координации.\n\nЭтот пакет содержит основное ядро фреймворка Legion, включает:\n\n- Координатор (LegionCore) - управление агентами и их жизненным циклом\n- Базовый класс агента (LegionAgent) - интерфейс для создания агентов\n- Специализированные агенты (EmailAgent, GoogleSheetsAgent, DataAgent)\n"""\n\nfrom .core import LegionCore\nfrom .agents import LegionAgent\nfrom .agents import EmailAgent, GoogleSheetsAgent, DataAgent\nfrom .database import LegionDatabase\nfrom .queue import TaskQueue\nfrom .logging_config import LegionLogger, setup_logging\n\n__version__ = \"2.2.0\"\n__all__ = [\n    \"LegionCore\",\n    \"LegionAgent\",\n    \"EmailAgent\",\n    \"GoogleSheetsAgent\",\n    \"DataAgent\",\n    \"LegionDatabase\",\n    \"TaskQueue\",\n    \"LegionLogger\",\n    \"setup_logging\"\n]\n
+"""
+Legion Framework - многоагентная система координации.
+
+Этот пакет содержит основное ядро фреймворка Legion, включает:
+
+- Координатор (LegionCore) - управление агентами и их жизненным циклом
+- Базовый класс агента (LegionAgent) - интерфейс для создания агентов
+- Специализированные агенты (EmailAgent, GoogleSheetsAgent, DataAgent)
+"""
+
+from .core import LegionCore
+from .agents import LegionAgent
+from .agents import EmailAgent, GoogleSheetsAgent, DataAgent
+from .database import LegionDatabase
+from .queue import TaskQueue
+from .logging_config import LegionLogger, setup_logging
+
+__version__ = "2.2.0"
+__all__ = [
+    "LegionCore",
+    "LegionAgent",
+    "EmailAgent",
+    "GoogleSheetsAgent",
+    "DataAgent",
+    "LegionDatabase",
+    "TaskQueue",
+    "LegionLogger",
+    "setup_logging"
+]

@@ -1,0 +1,111 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+.circleci
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Python cache
+__pycache__
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache
+.mypy_cache
+.ruff_cache
+
+# Virtual environments
+venv
+.venv
+env
+ENV
+
+# Build artifacts
+build
+dist
+*.egg-info
+.eggs
+.tox
+.nox
+target
+
+# Testing
+.coverage
+.coverage.*
+htmlcov
+.hypothesis
+nosetests.xml
+coverage.xml
+*.cover
+
+# Documentation
+docs/_build
+site
+*.md
+!README.md
+
+# Logs
+*.log
+logs
+
+# Environment files (SECURITY)
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.crt
+credentials.json
+secrets
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+db.sqlite3-journal
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Backup files
+*.bak
+*.swp
+*.tmp
+
+# Node (if any)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Jupyter
+.ipynb_checkpoints
+
+# Playwright browsers (will be installed in container)
+.cache/ms-playwright
+
+# Examples (not needed in production)
+examples
+
+# Tests (not needed in production)
+tests
+benchmarks
+
+# Development configs
+pyproject.toml
+setup.cfg
+setup.py
+MANIFEST.in
+tox.ini

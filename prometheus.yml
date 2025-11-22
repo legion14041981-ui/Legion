@@ -1,0 +1,75 @@
+# Prometheus Configuration for Legion AI System
+# Metrics collection and monitoring
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'legion-ai'
+    environment: 'production'
+
+# Alertmanager configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          # - 'alertmanager:9093'
+
+# Load rules once and periodically evaluate them
+rule_files:
+  # - "alerts/*.yml"
+
+# Scrape configurations
+scrape_configs:
+  # Legion AI System metrics
+  - job_name: 'legion-ai'
+    static_configs:
+      - targets: ['legion:9090']
+        labels:
+          service: 'legion-core'
+          component: 'main'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+    scrape_timeout: 10s
+
+  # MCP Server metrics
+  - job_name: 'mcp-server'
+    static_configs:
+      - targets: ['legion:8001']
+        labels:
+          service: 'mcp-server'
+          component: 'api'
+    metrics_path: '/metrics'
+    scrape_interval: 15s
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+        labels:
+          service: 'prometheus'
+          component: 'monitoring'
+
+  # Node exporter (if available)
+  - job_name: 'node'
+    static_configs:
+      - targets: ['node-exporter:9100']
+        labels:
+          service: 'system'
+          component: 'node-exporter'
+
+  # PostgreSQL metrics (if available)
+  - job_name: 'postgres'
+    static_configs:
+      - targets: ['postgres-exporter:9187']
+        labels:
+          service: 'database'
+          component: 'postgres'
+
+# Remote write (optional - for long-term storage)
+# remote_write:
+#   - url: "https://prometheus-remote-storage:9009/api/v1/write"
+
+# Remote read (optional)
+# remote_read:
+#   - url: "https://prometheus-remote-storage:9009/api/v1/read"

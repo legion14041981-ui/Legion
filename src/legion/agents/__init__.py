@@ -14,6 +14,7 @@ __all__ = [
     "EmailAgent",
     "GoogleSheetsAgent",
         "DataAgent",
+    ]
 
 
 __version__ = "0.2.0"

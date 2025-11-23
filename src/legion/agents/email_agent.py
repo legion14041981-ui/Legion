@@ -22,7 +22,7 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agents import LegionAgent
+from . import LegionAgent
 from logging_config import get_agent_logger
 
 

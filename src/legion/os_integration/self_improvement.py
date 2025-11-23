@@ -1,0 +1,245 @@
+"""Self-Improvement Engine - long-term memory and continuous learning.
+
+Реализует систему обучения и улучшения агентов:
+- Long-term memory (долгосрочная память)
+- Pattern recognition (распознавание паттернов)
+- Performance optimization (оптимизация производительности)
+- Continuous learning
+"""
+
+import json
+import logging
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+from datetime import datetime
+from collections import defaultdict
+
+logger = logging.getLogger(__name__)
+
+
+class SelfImprovementEngine:
+    """Движок самоулучшения агента.
+    
+    Сохраняет и анализирует:
+    - Успешные/неуспешные действия
+    - Производительность разных стратегий
+    - Частые паттерны и ошибки
+    - Knowledge base для будущих задач
+    
+    Attributes:
+        agent_id: ID агента
+        memory_file: Путь к файлу памяти
+        knowledge: База знаний
+    """
+    
+    def __init__(self, agent_id: str, memory_dir: Optional[Path] = None):
+        """Инициализировать self-improvement engine.
+        
+        Args:
+            agent_id: Уникальный ID агента
+            memory_dir: Директория для памяти
+        """
+        self.agent_id = agent_id
+        
+        if memory_dir is None:
+            memory_dir = Path.cwd() / 'agent_memory'
+        memory_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.memory_file = memory_dir / f'{agent_id}_memory.json'
+        
+        # Структура памяти
+        self.knowledge = {
+            'successful_actions': [],
+            'failed_actions': [],
+            'performance_metrics': defaultdict(list),
+            'learned_patterns': {},
+            'improvement_suggestions': [],
+            'metadata': {
+                'created_at': datetime.now().isoformat(),
+                'last_updated': datetime.now().isoformat(),
+                'total_experiences': 0
+            }
+        }
+        
+        # Загрузить существующую память
+        self._load_memory()
+        
+        logger.info(f"🧠 Self-improvement engine initialized for '{agent_id}'")
+    
+    def record_success(self, action: str, context: Dict[str, Any], result: Any):
+        """Записать успешное действие.
+        
+        Args:
+            action: Название действия
+            context: Контекст выполнения
+            result: Результат
+        """
+        experience = {
+            'action': action,
+            'context': context,
+            'result': result,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.knowledge['successful_actions'].append(experience)
+        self.knowledge['metadata']['total_experiences'] += 1
+        self._save_memory()
+        
+        logger.debug(f"✅ Success recorded: {action}")
+    
+    def record_failure(self, action: str, context: Dict[str, Any], error: str):
+        """Записать неуспешное действие.
+        
+        Args:
+            action: Название действия
+            context: Контекст
+            error: Описание ошибки
+        """
+        experience = {
+            'action': action,
+            'context': context,
+            'error': error,
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.knowledge['failed_actions'].append(experience)
+        self.knowledge['metadata']['total_experiences'] += 1
+        self._save_memory()
+        
+        logger.debug(f"❌ Failure recorded: {action} - {error}")
+    
+    def record_performance(self, metric_name: str, value: float, context: Dict = None):
+        """Записать метрику производительности.
+        
+        Args:
+            metric_name: Название метрики
+            value: Значение
+            context: Контекст
+        """
+        metric = {
+            'value': value,
+            'context': context or {},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.knowledge['performance_metrics'][metric_name].append(metric)
+        self._save_memory()
+        
+        logger.debug(f"📊 Performance metric: {metric_name}={value}")
+    
+    def learn_pattern(self, pattern_name: str, pattern_data: Dict[str, Any]):
+        """Сохранить распознанный паттерн.
+        
+        Args:
+            pattern_name: Название паттерна
+            pattern_data: Данные паттерна
+        """
+        self.knowledge['learned_patterns'][pattern_name] = {
+            'data': pattern_data,
+            'learned_at': datetime.now().isoformat(),
+            'usage_count': 0
+        }
+        self._save_memory()
+        
+        logger.info(f"🎯 Pattern learned: {pattern_name}")
+    
+    def get_pattern(self, pattern_name: str) -> Optional[Dict]:
+        """Получить сохранённый паттерн.
+        
+        Args:
+            pattern_name: Название паттерна
+        
+        Returns:
+            Optional[Dict]: Данные паттерна или None
+        """
+        pattern = self.knowledge['learned_patterns'].get(pattern_name)
+        if pattern:
+            pattern['usage_count'] += 1
+            self._save_memory()
+        return pattern
+    
+    def suggest_improvement(self, suggestion: str, priority: str = 'medium'):
+        """Добавить предложение по улучшению.
+        
+        Args:
+            suggestion: Текст предложения
+            priority: Приоритет (low/medium/high)
+        """
+        improvement = {
+            'suggestion': suggestion,
+            'priority': priority,
+            'suggested_at': datetime.now().isoformat()
+        }
+        
+        self.knowledge['improvement_suggestions'].append(improvement)
+        self._save_memory()
+        
+        logger.info(f"💡 Improvement suggested: {suggestion}")
+    
+    def get_success_rate(self, action: str = None) -> float:
+        """Рассчитать success rate.
+        
+        Args:
+            action: Конкретное действие (если None - общий)
+        
+        Returns:
+            float: Success rate (0.0 - 1.0)
+        """
+        successes = self.knowledge['successful_actions']
+        failures = self.knowledge['failed_actions']
+        
+        if action:
+            successes = [s for s in successes if s['action'] == action]
+            failures = [f for f in failures if f['action'] == action]
+        
+        total = len(successes) + len(failures)
+        if total == 0:
+            return 0.0
+        
+        return len(successes) / total
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Получить статистику.
+        
+        Returns:
+            Dict: Статистика обучения
+        """
+        return {
+            'agent_id': self.agent_id,
+            'total_experiences': self.knowledge['metadata']['total_experiences'],
+            'success_count': len(self.knowledge['successful_actions']),
+            'failure_count': len(self.knowledge['failed_actions']),
+            'success_rate': self.get_success_rate(),
+            'patterns_learned': len(self.knowledge['learned_patterns']),
+            'improvements_suggested': len(self.knowledge['improvement_suggestions'])
+        }
+    
+    def _load_memory(self):
+        """Загрузить память из файла."""
+        if self.memory_file.exists():
+            try:
+                data = json.loads(self.memory_file.read_text(encoding='utf-8'))
+                self.knowledge.update(data)
+                # Преобразовать performance_metrics обратно в defaultdict
+                self.knowledge['performance_metrics'] = defaultdict(
+                    list,
+                    self.knowledge.get('performance_metrics', {})
+                )
+                logger.info(f"📚 Memory loaded: {self.knowledge['metadata']['total_experiences']} experiences")
+            except Exception as e:
+                logger.error(f"❌ Failed to load memory: {e}")
+    
+    def _save_memory(self):
+        """Сохранить память в файл."""
+        try:
+            self.knowledge['metadata']['last_updated'] = datetime.now().isoformat()
+            # Преобразовать defaultdict в обычный dict для JSON
+            data = dict(self.knowledge)
+            data['performance_metrics'] = dict(data['performance_metrics'])
+            
+            self.memory_file.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False),
+                encoding='utf-8'
+            )
+        except Exception as e:
+            logger.error(f"❌ Failed to save memory: {e}")

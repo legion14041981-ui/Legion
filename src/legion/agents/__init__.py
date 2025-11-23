@@ -14,8 +14,8 @@ from ..agents import LegionAgent
 __all__ = [
     "EmailAgent",
     "GoogleSheetsAgent",
-    "DataAgent"    "LegionAgent",
-]
+        "DataAgent",
+    "LegionAgent",
 ]
 
 __version__ = "0.2.0"

@@ -1,5 +1,5 @@
 """
-Legion Core Module - руковиндица работы многоагентного система.
+Legion Core Module - руководитель работы многоагентного система.
 
 Этот модуль отвечает за:
 - Координацию эксекуции агентов
@@ -25,28 +25,28 @@ class LegionCore:
     """
     Основное ядро Legion Framework.
     
-    Отвечает за зауск и управление экосистемой агентов:
+    Отвечает за запуск и управление экосистемой агентов:
     - Инициализация и конфигурация
     - Координация эксекуции
     - Логирование
     
     Attributes:
         agents (Dict[str, Any]): Словарь зарегистрированных агентов
-        is_running (bool): Флаг статуса работы на ядра
+        is_running (bool): Флаг статуса работы ядра
     """
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
-        Обиче инициализации LegionCore.
+        Инициализация LegionCore.
         
         Args:
-            config (Dict[str, Any], optional): Конфигурацию системы. По умолчанию None.
+            config (Dict[str, Any], optional): Конфигурация системы. По умолчанию None.
         """
         self.agents: Dict[str, Any] = {}
         self.is_running: bool = False
         self.config: Dict[str, Any] = config or {}
 
-                # Подключение к БД
+        # Подключение к БД
         try:
             self.db = LegionDatabase()
             logger.info("Database connection established")
@@ -68,7 +68,7 @@ class LegionCore:
         self.agents[agent_id] = agent
         logger.info(f"Agent '{agent_id}' registered")
 
-            # Синхронизация с БД
+        # Синхронизация с БД
         if self.db:
             try:
                 self.db.register_agent(
@@ -87,7 +87,7 @@ class LegionCore:
             task_id (str): Идентификатор задачи
             task_data (Dict[str, Any]): Данные задачи
         """
-        # Плацехолдер для диспетчеризации
+        # Плейсхолдер для диспетчеризации
         logger.debug(f"Dispatching task '{task_id}' with data: {task_data}")
     
     def start(self) -> None:
@@ -118,7 +118,7 @@ class LegionCore:
     
     def get_all_agents(self) -> Dict[str, Any]:
         """
-        Получить всех регистрированных агентов.
+        Получить всех зарегистрированных агентов.
         
         Returns:
             Dict[str, Any]: Словарь агентов

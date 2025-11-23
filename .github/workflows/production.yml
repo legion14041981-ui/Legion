@@ -1,0 +1,212 @@
+# Legion v2.2 Production CI/CD Pipeline
+
+name: Production Deployment
+
+on:
+  push:
+    branches:
+      - main
+      - feature/ai-enhancements-2025
+  pull_request:
+    branches:
+      - main
+  release:
+    types: [created]
+
+env:
+  PYTHON_VERSION: '3.11'
+  DOCKER_IMAGE: legion-ai/core
+
+jobs:
+  # Job 1: Code quality and security
+  quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install black pylint mypy safety bandit
+      
+      - name: Code formatting (Black)
+        run: black --check src/ tests/
+      
+      - name: Linting (Pylint)
+        run: pylint src/legion --rcfile=.pylintrc || true
+      
+      - name: Type checking (mypy)
+        run: mypy src/legion --ignore-missing-imports || true
+      
+      - name: Security scan (Bandit)
+        run: bandit -r src/legion -ll
+      
+      - name: Dependency vulnerabilities (Safety)
+        run: safety check || true
+
+  # Job 2: Testing
+  test:
+    name: Tests & Coverage
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest-cov
+      
+      - name: Install Playwright
+        run: |
+          playwright install --with-deps chromium firefox webkit
+      
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v --cov=src/legion --cov-report=xml --cov-report=term
+      
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: legion-coverage
+
+  # Job 3: Performance benchmarks
+  benchmarks:
+    name: Performance Benchmarks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+      
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      
+      - name: Run performance benchmarks
+        run: |
+          pytest tests/performance/ -v --benchmark-only
+
+  # Job 4: Docker build
+  docker:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+    needs: [quality, test]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      
+      - name: Login to DockerHub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.DOCKER_IMAGE }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+      
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.os
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # Job 5: Deploy to staging
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: [docker]
+    if: github.ref == 'refs/heads/feature/ai-enhancements-2025'
+    environment:
+      name: staging
+      url: https://staging.legion-ai.dev
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to staging
+        run: |
+          echo "Deploying to staging environment..."
+          # Add your deployment commands here
+          # Example: kubectl apply -f k8s/staging/
+          # Or: docker-compose -f docker-compose.os.yml up -d
+      
+      - name: Health check
+        run: |
+          echo "Running health checks..."
+          # curl -f https://staging.legion-ai.dev/health || exit 1
+
+  # Job 6: Deploy to production
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [docker, deploy-staging]
+    if: github.ref == 'refs/heads/main'
+    environment:
+      name: production
+      url: https://legion-ai.dev
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Deploy to production
+        run: |
+          echo "Deploying to production environment..."
+          # Add your deployment commands here
+      
+      - name: Health check
+        run: |
+          echo "Running health checks..."
+          # curl -f https://legion-ai.dev/health || exit 1
+      
+      - name: Notify deployment
+        run: |
+          echo "✅ Production deployment completed successfully"

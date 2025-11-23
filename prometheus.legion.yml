@@ -1,0 +1,38 @@
+# Prometheus configuration for Legion v2.2
+
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: 'legion-production'
+    environment: 'prod'
+
+# Alerting configuration
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: []
+
+# Scrape configurations
+scrape_configs:
+  # Legion Core metrics
+  - job_name: 'legion-core'
+    static_configs:
+      - targets: ['legion:9090']
+        labels:
+          component: 'core'
+    metrics_path: '/metrics'
+    scrape_interval: 10s
+  
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+# Recording rules
+rule_files:
+  # - 'alerts/*.yml'
+
+# Remote write (optional - for long-term storage)
+# remote_write:
+#   - url: 'http://your-remote-storage:9090/api/v1/write'

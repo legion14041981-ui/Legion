@@ -1,17 +1,17 @@
-"""
-Legion Agents Module - базовые классы для создания агентов.
+"""Legion Agents Module - базовые классы для создания агентов.
 
 Этот модуль определяет:
 - Базовый интерфейс для всех агентов
 - Поведенческие методы
 - Жизненные циклы
+- Async/await поддержку (v2.2)
 """
 
 import logging
+import asyncio
 from typing import Any, Dict, Optional
 from abc import ABC, abstractmethod
 
-# Конфигурация логирования
 logger = logging.getLogger(__name__)
 
 
@@ -19,11 +19,7 @@ class LegionAgent(ABC):
     """
     Базовый класс для всех агентов в Legion Framework.
     
-    Этот класс дефинирует абстрактные методы для:
-    - Инициализации агента
-    - Запуска и остановки выполнения
-    - Обработки задач
-    - Мониторинга статуса
+    v2.2: Добавлена поддержка async/await для неблокирующего выполнения.
     
     Attributes:
         agent_id (str): Уникальный идентификатор
@@ -37,7 +33,7 @@ class LegionAgent(ABC):
         
         Args:
             agent_id (str): Уникальный идентификатор агента
-            config (Dict[str, Any], optional): Конфигурация агента. По умолчанию None.
+            config (Dict[str, Any], optional): Конфигурация агента
         """
         self.agent_id: str = agent_id
         self.is_active: bool = False
@@ -48,7 +44,7 @@ class LegionAgent(ABC):
     @abstractmethod
     def execute(self, task_data: Dict[str, Any]) -> Any:
         """
-        Обработать и выполнить задачу.
+        Обработать и выполнить задачу (синхронный метод).
         
         Каждый агент должен реализовать этот метод.
         
@@ -60,17 +56,31 @@ class LegionAgent(ABC):
         """
         pass
     
+    async def execute_async(self, task_data: Dict[str, Any]) -> Any:
+        """
+        Асинхронное выполнение задачи (v2.2).
+        
+        По умолчанию делегирует выполнение синхронному методу execute().
+        Агенты могут переопределить этот метод для нативной async реализации.
+        
+        Args:
+            task_data (Dict[str, Any]): Данные задачи
+        
+        Returns:
+            Any: Результат выполнения
+        """
+        # По умолчанию: запустить синхронный execute() в executor
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, self.execute, task_data)
+        return result
+    
     def start(self) -> None:
-        """
-        Запустить агент.
-        """
+        """Запустить агент."""
         self.is_active = True
         logger.info(f"Agent '{self.agent_id}' started")
     
     def stop(self) -> None:
-        """
-        Остановить агент.
-        """
+        """Остановить агент."""
         self.is_active = False
         logger.info(f"Agent '{self.agent_id}' stopped")
     
@@ -95,9 +105,8 @@ class LegionAgent(ABC):
             task_data (Dict[str, Any]): Данные для проверки
         
         Returns:
-            bool: True если данные валидны, иначе False
+            bool: True если данные валидны
         """
-        # Плацехолдер для валидации
         return task_data is not None
     
     def __repr__(self) -> str:
@@ -108,3 +117,11 @@ class LegionAgent(ABC):
             str: Описание агента
         """
         return f"<LegionAgent {self.agent_id} (active={self.is_active})>"
+
+
+# Legacy imports for backward compatibility
+from .agents.email_agent import EmailAgent
+from .agents.sheets_agent import GoogleSheetsAgent
+from .agents.data_agent import DataAgent
+
+__all__ = ['LegionAgent', 'EmailAgent', 'GoogleSheetsAgent', 'DataAgent']

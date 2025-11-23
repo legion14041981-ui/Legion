@@ -22,8 +22,8 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from . import LegionAgent
-from logging_config import get_agent_logger
+from legion import LegionAgen
+tfrom logging_config import get_agent_logger
 
 
 class EmailAgent(LegionAgent):

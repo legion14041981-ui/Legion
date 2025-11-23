@@ -9,13 +9,11 @@
 from .email_agent import EmailAgent
 from .sheets_agent import GoogleSheetsAgent
 from .data_agent import DataAgent
-from ..agents import LegionAgent
 
 __all__ = [
     "EmailAgent",
     "GoogleSheetsAgent",
         "DataAgent",
-    "LegionAgent",
-]
+
 
 __version__ = "0.2.0"

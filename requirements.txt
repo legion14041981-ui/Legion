@@ -41,7 +41,6 @@ prometheus-client>=0.19.0
 # Development tools
 black>=23.0.0
 pylint>=3.0.0
-<<<<<<< HEAD
 mypy>=1.7.0
 
 # OS Integration Layer (v2.2 - Phase 1)
@@ -55,6 +54,3 @@ pip-tools>=7.3.0        # For pip-compile and requirements.lock generation
 # Optional: Distributed backend (Phase 4)
 # ray[default]>=2.9.0   # Uncomment for distributed execution
 # redis>=5.0.0          # Uncomment for persistent state
-=======
-mypy>=1.7.0
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

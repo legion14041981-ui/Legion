@@ -1,10 +1,8 @@
-<<<<<<< HEAD
 # ИЗМЕНЕНО:
 from .base_agent import LegionAgent
 from .core import LegionCore
 
 __all__ = ['LegionCore', 'LegionAgent']
-=======
 """
 Legion Framework - многоагентная система координации.
 
@@ -34,4 +32,3 @@ __all__ = [
     "LegionLogger",
     "setup_logging"
 ]
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

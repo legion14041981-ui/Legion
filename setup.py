@@ -69,4 +69,8 @@ setup(
     ],
     keywords='ai multi-agent automation mcp playwright orchestration',
     license='MIT',
+<<<<<<< HEAD
 )
+=======
+)
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

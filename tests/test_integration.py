@@ -8,6 +8,7 @@ from unittest.mock import Mock, AsyncMock, patch
 from src.legion.integration import LegionAISystem
 
 
+<<<<<<< HEAD
 @pytest.fixture
 def mock_openai():
     """Mock OpenAI client."""
@@ -27,6 +28,8 @@ def mock_playwright():
         yield mock
 
 
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 @pytest.mark.asyncio
 async def test_system_initialization():
     """Test system initialization."""
@@ -41,6 +44,7 @@ async def test_mcp_server_initialization():
     """Test MCP server initialization."""
     system = LegionAISystem(config={'mcp_enabled': True})
     
+<<<<<<< HEAD
     assert system.mcp_server is not None
     assert system.tool_registry is not None
     assert system.code_executor is not None
@@ -96,6 +100,10 @@ async def test_orchestrator_initialization():
     
     if system.orchestrator:
         assert len(system.orchestrator.agents) >= 2  # planning + monitoring at minimum
+=======
+    if system.mcp_server:
+        assert system.mcp_server is not None
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 
 @pytest.mark.asyncio
@@ -104,4 +112,8 @@ async def test_cleanup():
     system = LegionAISystem(config={'mcp_enabled': False})
     
     # Should not raise
+<<<<<<< HEAD
     await system.cleanup()
+=======
+    await system.cleanup()
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

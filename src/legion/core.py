@@ -1,5 +1,9 @@
 """
+<<<<<<< HEAD
 Legion Core Module - руководит работой многоагентной системы.
+=======
+Legion Core Module - руководитель работы многоагентного система.
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 Этот модуль отвечает за:
 - Координацию эксекуции агентов
@@ -109,7 +113,11 @@ class LegionCore:
     
     def __init__(self, config: Optional[Dict[str, Any]] = None):
         """
+<<<<<<< HEAD
         Общая инициализация LegionCore.
+=======
+        Инициализация LegionCore.
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         
         Args:
             config (Dict[str, Any], optional): Конфигурация системы. По умолчанию None.
@@ -159,7 +167,7 @@ class LegionCore:
             task_id (str): Идентификатор задачи
             task_data (Dict[str, Any]): Данные задачи
         """
-        # Плацехолдер для диспетчеризации
+        # Плейсхолдер для диспетчеризации
         logger.debug(f"Dispatching task '{task_id}' with data: {task_data}")
     
     def start(self) -> None:
@@ -190,7 +198,7 @@ class LegionCore:
     
     def get_all_agents(self) -> Dict[str, Any]:
         """
-        Получить всех регистрированных агентов.
+        Получить всех зарегистрированных агентов.
         
         Returns:
             Dict[str, Any]: Словарь агентов

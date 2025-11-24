@@ -5,8 +5,12 @@ Coordinates planning, execution, and monitoring agents.
 
 import asyncio
 import logging
+<<<<<<< HEAD
 from typing import Any, Dict, List, Optional, TypedDict, Annotated
 import operator
+=======
+from typing import Any, Dict, List, Optional
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 try:
     from langgraph.graph import StateGraph, END
@@ -18,6 +22,7 @@ except ImportError:
 logger = logging.getLogger(__name__)
 
 
+<<<<<<< HEAD
 class AgentState(TypedDict):
     """State shared between agents."""
     messages: Annotated[List[Dict[str, Any]], operator.add]
@@ -27,12 +32,18 @@ class AgentState(TypedDict):
     error: Optional[str]
 
 
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 class MultiAgentOrchestrator:
     """Orchestrates multiple Legion agents.
     
     Uses LangGraph for workflow management with support for:
     - Sequential execution
+<<<<<<< HEAD
     - Parallel execution
+=======
+    - Parallel execution  
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
     - Dynamic handoffs
     - Error recovery
     """
@@ -47,7 +58,11 @@ class MultiAgentOrchestrator:
             raise ImportError("LangGraph required: pip install langgraph")
         
         self.config = config or {}
+<<<<<<< HEAD
         self.graph = StateGraph(AgentState)
+=======
+        self.graph = StateGraph(dict)
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         self.agents = {}
         self._compiled_graph = None
         
@@ -75,6 +90,7 @@ class MultiAgentOrchestrator:
             agent_sequence: List of agent names in execution order
         """
         logger.info(f"Building sequential workflow: {' -> '.join(agent_sequence)}")
+<<<<<<< HEAD
         
         for i, agent_name in enumerate(agent_sequence):
             agent_data = self.agents.get(agent_name)
@@ -118,6 +134,9 @@ class MultiAgentOrchestrator:
         
         # Final edge to END
         self.graph.add_edge(agent_sequence[-1], END)
+=======
+        # Implementation continues...
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
     
     def build_hierarchical_workflow(self, supervisor: str, workers: List[str]):
         """Build hierarchical workflow with supervisor.
@@ -127,6 +146,7 @@ class MultiAgentOrchestrator:
             workers: List of worker agent names
         """
         logger.info(f"Building hierarchical workflow: {supervisor} -> [{', '.join(workers)}]")
+<<<<<<< HEAD
         
         supervisor_agent = self.agents.get(supervisor)
         if not supervisor_agent:
@@ -179,6 +199,12 @@ class MultiAgentOrchestrator:
         Returns:
             Compiled graph ready for execution
         """
+=======
+        # Implementation continues...
+    
+    def compile(self):
+        """Compile the workflow graph."""
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         logger.info("Compiling orchestration graph...")
         self._compiled_graph = self.graph.compile()
         return self._compiled_graph
@@ -197,6 +223,7 @@ class MultiAgentOrchestrator:
         
         logger.info(f"Executing orchestrated workflow for task: {task.get('description', 'N/A')}")
         
+<<<<<<< HEAD
         initial_state: AgentState = {
             'messages': [],
             'task': task,
@@ -213,6 +240,15 @@ class MultiAgentOrchestrator:
                 'results': final_state['results'],
                 'messages': final_state['messages'],
                 'error': final_state.get('error')
+=======
+        try:
+            final_state = await self._compiled_graph.ainvoke({'task': task, 'results': {}})
+            
+            return {
+                'success': True,
+                'results': final_state.get('results', {}),
+                'error': None
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
             }
         except Exception as e:
             logger.error(f"Orchestration failed: {e}")
@@ -220,4 +256,8 @@ class MultiAgentOrchestrator:
                 'success': False,
                 'error': str(e),
                 'results': {}
+<<<<<<< HEAD
             }
+=======
+            }
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

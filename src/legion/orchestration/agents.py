@@ -37,6 +37,7 @@ class PlanningAgent:
         logger.info(f"Creating plan #{self.plans_created} for: {task.get('description', 'N/A')}")
         
         try:
+<<<<<<< HEAD
             # Analyze task complexity
             complexity = self._analyze_complexity(task)
             
@@ -58,12 +59,22 @@ class PlanningAgent:
                     'plan': plan,
                     'steps': plan.get('steps', [])
                 }
+=======
+            complexity = self._analyze_complexity(task)
+            
+            return {
+                'success': True,
+                'plan': {'type': complexity, 'steps': []},
+                'complexity': complexity,
+                'assigned_worker': 'execution'
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
             }
         except Exception as e:
             logger.error(f"Planning failed: {e}")
             return {
                 'success': False,
                 'error': str(e),
+<<<<<<< HEAD
                 'assigned_worker': 'monitoring'  # Route to monitoring for recovery
             }
     
@@ -79,12 +90,22 @@ class PlanningAgent:
         description = task.get('description', '')
         
         # Simple heuristics
+=======
+                'assigned_worker': 'monitoring'
+            }
+    
+    def _analyze_complexity(self, task: Dict[str, Any]) -> str:
+        """Analyze task complexity."""
+        description = task.get('description', '')
+        
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         if len(description.split()) < 10:
             return 'simple'
         elif len(description.split()) < 30:
             return 'medium'
         else:
             return 'complex'
+<<<<<<< HEAD
     
     async def _create_simple_plan(self, task: Dict[str, Any]) -> Dict[str, Any]:
         """Create plan for simple task."""
@@ -139,6 +160,8 @@ class PlanningAgent:
             'requires_monitoring': True,
             'estimated_time': 180
         }
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 
 class ExecutionAgent:
@@ -167,6 +190,7 @@ class ExecutionAgent:
         logger.info(f"Executing task #{self.executions}")
         
         try:
+<<<<<<< HEAD
             # Initialize browser if needed
             if not self.browser_agent._session_active:
                 await self.browser_agent.initialize()
@@ -195,6 +219,11 @@ class ExecutionAgent:
                 'steps_completed': len(results),
                 'total_steps': len(steps)
             }
+=======
+            # Execute browser automation
+            result = {'success': True, 'output': 'Execution completed'}
+            return result
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
             
         except Exception as e:
             logger.error(f"Execution failed: {e}")
@@ -202,6 +231,7 @@ class ExecutionAgent:
                 'success': False,
                 'error': str(e)
             }
+<<<<<<< HEAD
     
     def _convert_to_browser_task(self, step: Dict, original_task: Dict) -> Dict:
         """Convert plan step to browser task."""
@@ -222,6 +252,8 @@ class ExecutionAgent:
                 'duration': 1
             }
         }
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 
 class MonitoringAgent:
@@ -253,15 +285,24 @@ class MonitoringAgent:
             self.issues_detected += 1
             logger.warning(f"Issue detected #{self.issues_detected}: {error}")
             
+<<<<<<< HEAD
             # Attempt recovery
             recovery_result = await self._attempt_recovery(task, error)
             
             return recovery_result
+=======
+            return {
+                'success': True,
+                'recovery_method': 'retry',
+                'message': 'Recovery attempted'
+            }
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         else:
             return {
                 'success': True,
                 'status': 'healthy',
                 'message': 'No issues detected'
+<<<<<<< HEAD
             }
     
     async def _attempt_recovery(self, task: Dict, error: str) -> Dict[str, Any]:
@@ -312,3 +353,6 @@ class MonitoringAgent:
                 'error': str(e),
                 'message': 'Manual intervention required'
             }
+=======
+            }
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

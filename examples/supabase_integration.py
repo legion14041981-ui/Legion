@@ -1,6 +1,5 @@
 """
 Supabase integration example for Legion framework.
-
 This script demonstrates:
 - Connecting to Supabase database
 - Using LegionDatabase with Supabase
@@ -8,7 +7,6 @@ This script demonstrates:
 - Working with tasks using Edge Functions
 - Using TaskQueue with database backend
 """
-
 import asyncio
 import sys
 import os
@@ -21,7 +19,6 @@ from legion import LegionCore, LegionAgent, LegionDatabase, TaskQueue, setup_log
 
 # Load environment variables
 load_dotenv()
-
 
 async def main():
     """Demonstrate Supabase integration with Legion."""
@@ -44,19 +41,19 @@ async def main():
     # Create database connection
     try:
         db = LegionDatabase(supabase_url, supabase_key)
-        logger.info("✓ Connected to Supabase successfully")
+        logger.info("Connected to Supabase successfully")
     except Exception as e:
         logger.error(f"Failed to connect to Supabase: {e}")
         return
     
     # Create Legion coordinator
     legion = LegionCore()
-    logger.info("✓ LegionCore initialized")
+    logger.info("LegionCore initialized")
     
     # Create agents
     logger.info("\nCreating agents with database storage...")
     
-    agents_data = [
+    agents_config = [
         {
             "agent_id": "supabase_agent_001",
             "name": "DataSyncAgent",
@@ -78,11 +75,16 @@ async def main():
     ]
     
     # Create and register agents
-    for agent_data in agents_data:
-        agent = LegionAgent(**agent_data)
-        
-        # Register agent in database
+    for agent_config in agents_config:
         try:
+            agent = LegionAgent(
+                agent_id=agent_config["agent_id"],
+                name=agent_config["name"],
+                capabilities=agent_config["capabilities"],
+                max_tasks=agent_config["max_tasks"]
+            )
+            
+            # Register agent in database
             result = await db.create_agent(
                 agent_id=agent.agent_id,
                 name=agent.name,
@@ -93,9 +95,9 @@ async def main():
             # Register with coordinator
             legion.register_agent(agent)
             
-            logger.info(f"✓ Created and registered: {agent.name} ({agent.agent_id})")
+            logger.info(f"Created and registered: {agent.name} ({agent.agent_id})")
         except Exception as e:
-            logger.error(f"Failed to create agent {agent.name}: {e}")
+            logger.error(f"Failed to create agent {agent_config['name']}: {e}")
     
     # List all agents from database
     logger.info("\nFetching agents from database...")
@@ -103,19 +105,19 @@ async def main():
         all_agents = await db.get_all_agents()
         logger.info(f"Total agents in database: {len(all_agents)}")
         for agent in all_agents:
-            logger.info(f"  - {agent['name']} ({agent['agent_id']}) - Status: {agent['status']}")
+            logger.info(f" - {agent['name']} ({agent['agent_id']}) - Status: {agent['status']}")
     except Exception as e:
         logger.error(f"Failed to fetch agents: {e}")
     
     # Initialize TaskQueue with database
     logger.info("\nInitializing TaskQueue...")
     task_queue = TaskQueue(db, check_interval=5)
-    logger.info("✓ TaskQueue initialized")
+    logger.info("TaskQueue initialized")
     
     # Create sample tasks
     logger.info("\nCreating sample tasks...")
     
-    tasks_data = [
+    tasks_config = [
         {
             "task_type": "data_sync",
             "description": "Sync customer database",
@@ -136,10 +138,15 @@ async def main():
         }
     ]
     
-    for task_data in tasks_data:
+    for task_config in tasks_config:
         try:
-            task_id = await db.create_task(**task_data)
-            logger.info(f"✓ Created task: {task_data['description']} (ID: {task_id})")
+            task_id = await db.create_task(
+                task_type=task_config["task_type"],
+                description=task_config["description"],
+                priority=task_config["priority"],
+                data=task_config["data"]
+            )
+            logger.info(f"Created task: {task_config['description']} (ID: {task_id})")
         except Exception as e:
             logger.error(f"Failed to create task: {e}")
     
@@ -149,14 +156,14 @@ async def main():
         pending_tasks = await db.get_pending_tasks()
         logger.info(f"Pending tasks: {len(pending_tasks)}")
         for task in pending_tasks:
-            logger.info(f"  - [{task['priority']}] {task['description']} (Type: {task['task_type']})")
+            logger.info(f" - [{task['priority']}] {task['description']} (Type: {task['task_type']})")
     except Exception as e:
         logger.error(f"Failed to fetch tasks: {e}")
     
     # Start task queue processing
     logger.info("\nStarting task queue processing...")
     await task_queue.start()
-    logger.info("✓ Task queue started")
+    logger.info("Task queue started")
     
     # Let it process for a few seconds
     logger.info("Processing tasks for 5 seconds...")
@@ -165,26 +172,25 @@ async def main():
     # Get queue statistics
     stats = task_queue.get_stats()
     logger.info(f"\nQueue Statistics:")
-    logger.info(f"  Tasks processed: {stats['tasks_processed']}")
-    logger.info(f"  Tasks failed: {stats['tasks_failed']}")
-    logger.info(f"  Queue running: {stats['is_running']}")
+    logger.info(f" Tasks processed: {stats['tasks_processed']}")
+    logger.info(f" Tasks failed: {stats['tasks_failed']}")
+    logger.info(f" Queue running: {stats['is_running']}")
     
     # Stop task queue
     logger.info("\nStopping task queue...")
     await task_queue.stop()
-    logger.info("✓ Task queue stopped")
+    logger.info("Task queue stopped")
     
     # Final status check
     logger.info("\nFinal agent status:")
     try:
         all_agents = await db.get_all_agents()
         for agent in all_agents:
-            logger.info(f"  {agent['name']}: {agent['status']}")
+            logger.info(f" {agent['name']}: {agent['status']}")
     except Exception as e:
         logger.error(f"Failed to get final status: {e}")
     
     logger.info("\nSupabase integration example completed successfully!")
-
 
 if __name__ == "__main__":
     try:

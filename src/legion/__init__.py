@@ -1,5 +1,37 @@
+<<<<<<< HEAD
 # ИЗМЕНЕНО:
 from .base_agent import LegionAgent
 from .core import LegionCore
 
 __all__ = ['LegionCore', 'LegionAgent']
+=======
+"""
+Legion Framework - многоагентная система координации.
+
+Этот пакет содержит основное ядро фреймворка Legion, включает:
+
+- Координатор (LegionCore) - управление агентами и их жизненным циклом
+- Базовый класс агента (LegionAgent) - интерфейс для создания агентов
+- Специализированные агенты (EmailAgent, GoogleSheetsAgent, DataAgent)
+"""
+
+from .core import LegionCore
+from .agents import LegionAgent
+from .agents import EmailAgent, GoogleSheetsAgent, DataAgent
+from .database import LegionDatabase
+from .queue import TaskQueue
+from .logging_config import LegionLogger, setup_logging
+
+__version__ = "2.0.0"
+__all__ = [
+    "LegionCore",
+    "LegionAgent",
+    "EmailAgent",
+    "GoogleSheetsAgent",
+    "DataAgent",
+    "LegionDatabase",
+    "TaskQueue",
+    "LegionLogger",
+    "setup_logging"
+]
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

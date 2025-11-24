@@ -1,8 +1,15 @@
+<<<<<<< HEAD
 name: CI/CD Pipeline
 
 on:
   push:
     branches: [ main, develop, feature/* ]
+=======
+name: CI
+on:
+  push:
+    branches: [ main ]
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
   pull_request:
     branches: [ main, develop ]
 
@@ -40,15 +47,15 @@ jobs:
     strategy:
       matrix:
         python-version: ['3.9', '3.10', '3.11']
-
     steps:
-    - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v4
-      with:
-        python-version: ${{ matrix.python-version }}
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
 
+<<<<<<< HEAD
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
@@ -129,3 +136,27 @@ jobs:
         name: security-reports
         path: |
           bandit-report.json
+=======
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov flake8 bandit pip-audit
+
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+
+      - name: Test with pytest
+        run: |
+          pytest -v --tb=short
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

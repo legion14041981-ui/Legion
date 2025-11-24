@@ -24,7 +24,8 @@ except ImportError:
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from agents import LegionAgent
+# FIXED: Changed from `from agents import LegionAgent` to relative import
+from ..agents import LegionAgent
 from logging_config import get_agent_logger
 
 

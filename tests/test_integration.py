@@ -37,7 +37,7 @@ async def test_system_initialization():
 @pytest.mark.asyncio
 async def test_mcp_server_initialization():
     """Test MCP server initialization."""
-    system = LegionAISystem(config={'mcp_enabled': True})
+    system = LegionCore(config={'mcp_enabled': True})
     
     assert system.mcp_server is not None
     assert system.tool_registry is not None
@@ -99,7 +99,7 @@ async def test_orchestrator_initialization():
 @pytest.mark.asyncio
 async def test_cleanup():
     """Test system cleanup."""
-    system = LegionAISystem(config={'mcp_enabled': False})
+    system = LegionCore(config={'mcp_enabled': False})
     
     # Should not raise
     await system.cleanup()

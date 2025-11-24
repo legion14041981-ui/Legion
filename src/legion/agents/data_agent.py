@@ -25,7 +25,7 @@ except ImportError:
     PANDAS_AVAILABLE = False
     logging.warning("pandas not installed. DataFrame operations will be limited.")
 
-from ..core.agent import LegionAgent
+from ..base_agent import LegionAgent
 
 
 class DataAgent(LegionAgent):

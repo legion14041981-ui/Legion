@@ -9,6 +9,7 @@
 - Throughput metrics
 """
 
+import asyncio
 import logging
 import time
 from typing import Dict, Any, Optional

@@ -22,8 +22,8 @@ from pathlib import Path
 import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-# FIXED: Changed from `from agents import LegionAgent` to relative import
-from ..agents import LegionAgent
+# FIXED: Changed from `fro..base_agent import LegionAgent` to relative import
+from ..base_agent import LegionAgent
 from logging_config import get_agent_logger
 
 

@@ -21,7 +21,7 @@ except ImportError:
     Page = Any
     BrowserContext = Any
 
-from ..agents import LegionAgent
+from ..base_agent import LegionAgent
 
 logger = logging.getLogger(__name__)
 

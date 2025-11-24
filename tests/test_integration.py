@@ -7,6 +7,7 @@ from unittest.mock import Mock, AsyncMock, patch
 
 from src.legion.core import LegionCore
 @pytest.fixture
+def mock_openai():
     """Mock OpenAI client."""
     with patch('src.legion.ai.script_generator.AsyncOpenAI') as mock:
         mock_client = Mock()

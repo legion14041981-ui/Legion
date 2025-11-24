@@ -7,7 +7,7 @@
 import logging
 import asyncio
 from typing import Any, Dict, Optional
-from restrictedpython import compile_restricted, safe_globals
+from RestrictedPython import compile_restricted, safe_globals
 import sys
 from io import StringIO
 

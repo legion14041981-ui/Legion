@@ -4,7 +4,7 @@ import pytest
 import asyncio
 import time
 from legion.core import LegionCore
-from legion.agents import LegionAgent
+from legion.base_agent import LegionAgent
 
 
 class MockAgent(LegionAgent):

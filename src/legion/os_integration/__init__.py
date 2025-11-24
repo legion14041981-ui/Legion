@@ -8,7 +8,7 @@
 - Самообучение и оптимизацию (SelfImprovement)
 """
 
-from .workspace import Workspace
+from .workspace import Workspace, WorkspaceConfig
 from .identity import IdentityManager
 from .interface import OSInterface
 from .audit import AuditLogger
@@ -23,3 +23,4 @@ __all__ = [
 ]
 
 __version__ = '2.2.0'
+

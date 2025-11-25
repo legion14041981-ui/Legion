@@ -3,10 +3,8 @@
 This module implements MCP server and client capabilities,
 allowing Legion to integrate with any MCP-compatible AI system.
 """
-
 from .server import LegionMCPServer
 from .client import LegionMCPClient
-<<<<<<< HEAD
 from .tools import LegionToolRegistry
 from .executor import CodeExecutionEngine
 =======

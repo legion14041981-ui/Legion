@@ -3,11 +3,7 @@
 import asyncio
 import logging
 from typing import Any, Dict, List
-<<<<<<< HEAD
 from concurrent.futures import ThreadPoolExecutor
-=======
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
-
 logger = logging.getLogger(__name__)
 
 
@@ -40,10 +36,7 @@ class SequentialPattern:
                 result = await agent.execute(current_task)
                 results.append(result)
                 
-<<<<<<< HEAD
                 # Pass result to next agent
-=======
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
                 current_task = {
                     **current_task,
                     'previous_result': result
@@ -84,17 +77,12 @@ class ParallelPattern:
         """
         logger.info(f"Parallel execution: {len(agents)} agents")
         
-<<<<<<< HEAD
         # Execute all agents concurrently
         tasks = [agent.execute(task) for agent in agents]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
         # Process results
-=======
-        tasks = [agent.execute(task) for agent in agents]
-        results = await asyncio.gather(*tasks, return_exceptions=True)
-        
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+       results = await asyncio.gather(*tasks, return_exceptions=True)
         processed_results = []
         for i, result in enumerate(results):
             if isinstance(result, Exception):
@@ -137,10 +125,7 @@ class HierarchicalPattern:
         """
         logger.info(f"Hierarchical execution: 1 supervisor, {len(workers)} workers")
         
-<<<<<<< HEAD
         # Supervisor creates plan
-=======
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         supervisor_result = await supervisor.execute(task)
         
         if not supervisor_result.get('success'):
@@ -150,10 +135,7 @@ class HierarchicalPattern:
                 'pattern': 'hierarchical'
             }
         
-<<<<<<< HEAD
         # Execute assigned worker
-=======
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         assigned_worker_index = supervisor_result.get('assigned_worker_index', 0)
         worker = workers[assigned_worker_index] if assigned_worker_index < len(workers) else workers[0]
         
@@ -214,10 +196,7 @@ class HandoffPattern:
                     'result': result
                 })
                 
-<<<<<<< HEAD
                 # Check if handoff requested
-=======
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
                 next_agent = result.get('handoff_to')
                 if not next_agent or next_agent == 'END':
                     logger.info("Handoff chain completed")

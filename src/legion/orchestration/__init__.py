@@ -6,7 +6,6 @@ Implements various orchestration patterns:
 - Federated (for distributed environments)
 """
 
-<<<<<<< HEAD
 from .orchestrator import MultiAgentOrchestrator
 from .agents import PlanningAgent, ExecutionAgent, MonitoringAgent
 from .patterns import (

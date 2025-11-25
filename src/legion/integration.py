@@ -1,5 +1,4 @@
 """Integration module for Legion AI enhancements.
-
 Connects MCP, AI script generation, browser automation, and orchestration.
 """
 
@@ -9,15 +8,6 @@ import os
 from typing import Any, Dict, Optional
 
 from .core import LegionCore
-<<<<<<< HEAD
-from .mcp.server import LegionMCPServer
-from .mcp.tools import LegionToolRegistry
-from .mcp.executor import CodeExecutionEngine
-from .ai.script_generator import ScriptGenerator
-from .agents.browser_agent import PlaywrightBrowserAgent
-from .orchestration.orchestrator import MultiAgentOrchestrator
-from .orchestration.agents import PlanningAgent, ExecutionAgent, MonitoringAgent
-=======
 
 # Placeholder imports - will be available after full merge
 try:

@@ -4,18 +4,23 @@
 Этот модуль содержит готовые реализации агентов для различных задач:
 - EmailAgent - отправка email через SMTP
 - GoogleSheetsAgent - интеграция с Google Sheets
-- DataAgent - обработка и анализ данных"""
+- DataAgent - обработка и анализ данных
+- CIHealerAgent - автономное исправление CI/CD ошибок
+"""
 
 from .email_agent import EmailAgent
 from .sheets_agent import GoogleSheetsAgent
 from .data_agent import DataAgent
+from .ci_healer_agent import CIHealerAgent, HealingResult
 from ..agents import LegionAgent
 
 __all__ = [
     "EmailAgent",
     "GoogleSheetsAgent",
-        "DataAgent",
-        "LegionAgent",
+    "DataAgent",
+    "CIHealerAgent",
+    "HealingResult",
+    "LegionAgent",
 ]
 
-__version__ = "0.2.0"
+__version__ = "2.0.0"

@@ -62,11 +62,7 @@ class ScriptGenerator:
         
         try:
             response = await self.client.chat.completions.create(
-<<<<<<< HEAD
                 model="gpt-4-turbo",  # Use gpt-4-turbo or latest available
-=======
-                model="gpt-4-turbo",
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
                 messages=[
                     {
                         "role": "system",
@@ -79,13 +75,8 @@ class ScriptGenerator:
                         "content": prompt
                     }
                 ],
-<<<<<<< HEAD
                 temperature=0.2,  # Low temperature for deterministic code
-=======
-                temperature=0.2,
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
-                max_tokens=2000
-            )
+           )
             
             code = response.choices[0].message.content
             

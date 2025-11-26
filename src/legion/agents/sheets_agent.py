@@ -21,12 +21,8 @@ except ImportError:
     print("WARNING: google-api-python-client not installed")
     print("Install with: pip install google-api-python-client google-auth")
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-# FIXED: Changed from `fro..base_agent import LegionAgent` to relative import
 from ..base_agent import LegionAgent
-from logging_config import get_agent_logger
+from ..logging_config import get_agent_logger
 
 
 class GoogleSheetsAgent(LegionAgent):
@@ -361,7 +357,7 @@ class GoogleSheetsAgent(LegionAgent):
 if __name__ == "__main__":
     async def test_sheets_agent():
         """Тестирование GoogleSheetsAgent."""
-        from logging_config import setup_logging
+        from ..logging_config import setup_logging
         
         logger = setup_logging("SheetsAgentTest", "INFO")
         logger.info("Тест GoogleSheetsAgent")

@@ -12,7 +12,7 @@ from .email_agent import EmailAgent
 from .sheets_agent import GoogleSheetsAgent
 from .data_agent import DataAgent
 from .ci_healer_agent import CIHealerAgent, HealingResult
-from ..agents import LegionAgent
+from ..base_agent import LegionAgent
 
 __all__ = [
     "EmailAgent",

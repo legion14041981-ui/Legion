@@ -1,45 +1,37 @@
-<<<<<<< HEAD
 name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, develop, feature/* ]
-=======
-name: CI
-on:
-  push:
-    branches: [ main ]
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+    branches:
+      - main
+      - develop
+      - feature/*
   pull_request:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - develop
 
 jobs:
   lint:
     name: Code Quality Check
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install flake8 black pylint mypy
-
-    - name: Lint with flake8
-      run: |
-        # stop the build if there are Python syntax errors or undefined names
-        flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-        # exit-zero treats all errors as warnings
-        flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-    - name: Check code formatting with black
-      run: |
-        black --check src/ tests/
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flake8 black pylint mypy
+      - name: Lint with flake8
+        run: |
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+      - name: Check code formatting with black
+        run: |
+          black --check src/ tests/
 
   test:
     name: Test Suite
@@ -49,114 +41,75 @@ jobs:
         python-version: ['3.9', '3.10', '3.11']
     steps:
       - uses: actions/checkout@v4
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-
-<<<<<<< HEAD
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-asyncio pytest-cov pytest-playwright
-
-    - name: Install Playwright browsers
-      run: |
-        playwright install chromium
-
-    - name: Run unit tests
-      run: |
-        pytest tests/ -v -m "not integration and not requires_api_key" --cov=src/legion --cov-report=xml
-
-    - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
-      with:
-        file: ./coverage.xml
-        flags: unittests
-        name: codecov-umbrella
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-cov pytest-playwright
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium
+      - name: Run unit tests
+        run: |
+          pytest tests/ -v -m "not integration and not requires_api_key" --cov=src/legion --cov-report=xml
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
 
   integration-test:
     name: Integration Tests
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pytest pytest-asyncio pytest-playwright
-
-    - name: Install Playwright browsers
-      run: |
-        playwright install chromium firefox webkit
-
-    - name: Run integration tests
-      env:
-        SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-        SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
-      run: |
-        pytest tests/ -v -m "integration and not requires_api_key"
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio pytest-playwright
+      - name: Install Playwright browsers
+        run: |
+          playwright install chromium firefox webkit
+      - name: Run integration tests
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          pytest tests/ -v -m "integration and not requires_api_key"
 
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-
-    - name: Set up Python 3.11
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install safety bandit
-
-    - name: Run safety check
-      run: |
-        safety check --json || true
-
-    - name: Run bandit security scan
-      run: |
-        bandit -r src/ -f json -o bandit-report.json || true
-
-    - name: Upload security reports
-      uses: actions/upload-artifact@v3
-      with:
-        name: security-reports
-        path: |
-          bandit-report.json
-=======
-      - name: Cache pip
-        uses: actions/cache@v4
+      - uses: actions/checkout@v3
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v4
         with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-
+          python-version: '3.11'
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install pytest pytest-cov flake8 bandit pip-audit
-
-      - name: Lint with flake8
+          pip install safety bandit
+      - name: Run safety check
         run: |
-          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
-          flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-
-      - name: Test with pytest
+          safety check --json || true
+      - name: Run bandit security scan
         run: |
-          pytest -v --tb=short
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+          bandit -r src/ -f json -o bandit-report.json || true
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            bandit-report.json

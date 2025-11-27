@@ -9,7 +9,7 @@ Base Agent - базовый класс для всех агентов Legion Fra
 import asyncio
 import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict
 from dataclasses import dataclass, field
 from datetime import datetime
 

@@ -9,11 +9,16 @@
 from .email_agent import EmailAgent
 from .sheets_agent import GoogleSheetsAgent
 from .data_agent import DataAgent
+from .base_agent import LegionAgent, AgentConfig
 
 __all__ = [
     "EmailAgent",
     "GoogleSheetsAgent",
     "DataAgent",
+        "LegionAgent",
+    "AgentConfig",
+    "CIHealerAgent",
+    "HealingResult",
 ]
 
 __version__ = "0.2.0"

@@ -1,17 +1,23 @@
-"""Self-Improvement Engine - long-term memory and continuous learning.
+"""Self-Improvement Engine - long-term memory, continuous learning и AI-powered самооптимизация.
 
 Реализует систему обучения и улучшения агентов:
 - Long-term memory (долгосрочная память)
 - Pattern recognition (распознавание паттернов)
 - Performance optimization (оптимизация производительности)
 - Continuous learning
+- Анализ производительности агентов
+- Автоматическое выявление узких мест
+- Генерация рекомендаций по оптимизации
+- Применение улучшений в runtime
 """
 
 import json
 import logging
+import asyncio
+import statistics
 from pathlib import Path
 from typing import Dict, List, Any, Optional
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
@@ -25,6 +31,8 @@ class SelfImprovementEngine:
     - Производительность разных стратегий
     - Частые паттерны и ошибки
     - Knowledge base для будущих задач
+    - Метрики производительности
+    - Рекомендации по оптимизации
     
     Attributes:
         agent_id: ID агента
@@ -54,10 +62,12 @@ class SelfImprovementEngine:
             'performance_metrics': defaultdict(list),
             'learned_patterns': {},
             'improvement_suggestions': [],
+            'optimization_history': [],
             'metadata': {
                 'created_at': datetime.now().isoformat(),
                 'last_updated': datetime.now().isoformat(),
-                'total_experiences': 0
+                'total_experiences': 0,
+                'optimization_count': 0
             }
         }
         
@@ -168,13 +178,65 @@ class SelfImprovementEngine:
         improvement = {
             'suggestion': suggestion,
             'priority': priority,
-            'suggested_at': datetime.now().isoformat()
+            'suggested_at': datetime.now().isoformat(),
+            'applied': False
         }
         
         self.knowledge['improvement_suggestions'].append(improvement)
         self._save_memory()
         
         logger.info(f"💡 Improvement suggested: {suggestion}")
+    
+    def apply_optimization(self, optimization: Dict[str, Any]):
+        """Применить оптимизацию.
+        
+        Args:
+            optimization: Описание оптимизации
+        """
+        optimization['applied_at'] = datetime.now().isoformat()
+        self.knowledge['optimization_history'].append(optimization)
+        self.knowledge['metadata']['optimization_count'] += 1
+        self._save_memory()
+        
+        logger.info(f"🚀 Optimization applied: {optimization.get('description', 'Unknown')}")
+    
+    def analyze_performance(self, metric_name: str, window_hours: int = 24) -> Dict[str, Any]:
+        """Анализ производительности за период.
+        
+        Args:
+            metric_name: Название метрики
+            window_hours: Окно анализа в часах
+        
+        Returns:
+            Dict: Статистика производительности
+        """
+        metrics = self.knowledge['performance_metrics'].get(metric_name, [])
+        
+        if not metrics:
+            return {'error': 'No metrics found'}
+        
+        # Фильтр по времени
+        cutoff = datetime.now() - timedelta(hours=window_hours)
+        recent_metrics = [
+            m for m in metrics
+            if datetime.fromisoformat(m['timestamp']) > cutoff
+        ]
+        
+        if not recent_metrics:
+            return {'error': 'No recent metrics'}
+        
+        values = [m['value'] for m in recent_metrics]
+        
+        return {
+            'metric_name': metric_name,
+            'count': len(values),
+            'mean': statistics.mean(values),
+            'median': statistics.median(values),
+            'stdev': statistics.stdev(values) if len(values) > 1 else 0,
+            'min': min(values),
+            'max': max(values),
+            'window_hours': window_hours
+        }
     
     def get_success_rate(self, action: str = None) -> float:
         """Рассчитать success rate.
@@ -211,7 +273,8 @@ class SelfImprovementEngine:
             'failure_count': len(self.knowledge['failed_actions']),
             'success_rate': self.get_success_rate(),
             'patterns_learned': len(self.knowledge['learned_patterns']),
-            'improvements_suggested': len(self.knowledge['improvement_suggestions'])
+            'improvements_suggested': len(self.knowledge['improvement_suggestions']),
+            'optimizations_applied': self.knowledge['metadata']['optimization_count']
         }
     
     def _load_memory(self):

@@ -6,11 +6,15 @@
 - Permission management
 - Token refresh & revocation
 - Entra-inspired design (Microsoft's identity platform)
+- Уникальные идентификаторы агентов
+- Управление ролями и правами доступа
 """
 
 import jwt
 import logging
 import secrets
+import uuid
+import hashlib
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Set, Any
 from dataclasses import dataclass, field

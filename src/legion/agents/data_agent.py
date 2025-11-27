@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-DataAgent - агент для обработки и трансформации данных
+DataAgent - агент для обработки и трансформации данных.
 
 Поддерживает:
 - Парсинг различных форматов (JSON, CSV, XML)
@@ -20,6 +20,7 @@ import logging
 
 try:
     import pandas as pd
+
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
@@ -31,218 +32,177 @@ from .base_agent import LegionAgent
 class DataAgent(LegionAgent):
     """
     Агент для обработки и анализа данных.
-    
+
     Поддерживает множество операций с данными:
     - Парсинг JSON, CSV, XML
     - Фильтрация и трансформация
     - Агрегация и статистика
     - Валидация данных
     """
-    
+
     def __init__(
         self,
         agent_id: str,
         name: str,
         description: str = "Data processing agent",
-        **kwargs
-    ):
-        super().__init__(agent_id, name, description, **kwargs)
-        
-        # Определяем доступные capabilities
-        self.capabilities = [
-            "data_parse_json",
-            "data_parse_csv",
-            "data_parse_xml",
-            "data_filter",
-            "data_transform",
-            "data_aggregate",
-            "data_validate",
-            "data_statistics"
-        ]
-        
-        # Статистика операций
-        self.operations_count = 0
-        self.parse_count = 0
-        self.transform_count = 0
-        self.validation_count = 0
-        
-    async def execute(self, task: Dict[str, Any]) -> Dict[str, Any]:
+        **kwargs: Any,
+    ) -> None:
+        super().__init__(agent_id=agent_id, name=name, description=description, **kwargs)
+
+    async def parse_json(self, data: Union[str, bytes]) -> Any:
         """
-        Выполняет операцию обработки данных.
-        
-        Args:
-            task: Словарь с параметрами задачи
-                - capability: Тип операции
-                - data: Данные для обработки
-                - options: Дополнительные параметры
-        
-        Returns:
-            Результат выполнения операции
+        Парсинг JSON-данных.
+
+        :param data: строка или bytes с JSON
+        :return: распарсенный объект Python
         """
-        self.operations_count += 1
-        capability = task.get('capability')
-        data = task.get('data')
-        options = task.get('options', {})
-        
-        try:
-            if capability == 'data_parse_json':
-                result = await self._parse_json(data, options)
-            elif capability == 'data_parse_csv':
-                result = await self._parse_csv(data, options)
-            elif capability == 'data_parse_xml':
-                result = await self._parse_xml(data, options)
-            elif capability == 'data_filter':
-                result = await self._filter_data(data, options)
-            elif capability == 'data_transform':
-                result = await self._transform_data(data, options)
-            elif capability == 'data_aggregate':
-                result = await self._aggregate_data(data, options)
-            elif capability == 'data_validate':
-                result = await self._validate_data(data, options)
-            elif capability == 'data_statistics':
-                result = await self._calculate_statistics(data, options)
-            else:
-                return {'success': False, 'error': f'Unknown capability: {capability}'}
-            
-            return {'success': True, 'result': result}
-            
-        except Exception as e:
-            logging.error(f"DataAgent error: {e}")
-            return {'success': False, 'error': str(e)}
-    
-    async def _parse_json(self, data: Union[str, dict], options: Dict) -> Any:
-        """Парсинг JSON"""
-        self.parse_count += 1
-        if isinstance(data, str):
-            return json.loads(data)
-        return data
-    
-    async def _parse_csv(self, data: str, options: Dict) -> List[Dict]:
-        """Парсинг CSV"""
-        self.parse_count += 1
-        delimiter = options.get('delimiter', ',')
-        reader = csv.DictReader(StringIO(data), delimiter=delimiter)
-        return list(reader)
-    
-    async def _parse_xml(self, data: str, options: Dict) -> Dict:
-        """Парсинг XML"""
-        self.parse_count += 1
-        root = ET.fromstring(data)
-        return self._xml_to_dict(root)
-    
-    def _xml_to_dict(self, element) -> Dict:
-        result = {element.tag: {}}
-        if element.attrib:
-            result[element.tag]['@attributes'] = element.attrib
-        if element.text and element.text.strip():
-            result[element.tag]['#text'] = element.text.strip()
-        for child in element:
-            child_data = self._xml_to_dict(child)
-            result[element.tag].update(child_data)
-        return result
-    
-    async def _filter_data(self, data: List[Dict], options: Dict) -> List[Dict]:
-        """Фильтрация данных"""
-        self.transform_count += 1
-        filters = options.get('filters', {})
-        result = data
-        for key, value in filters.items():
-            result = [item for item in result if item.get(key) == value]
-        return result
-    
-    async def _transform_data(self, data: List[Dict], options: Dict) -> List[Dict]:
-        """Трансформация данных"""
-        self.transform_count += 1
-        fields = options.get('fields')
-        sort_by = options.get('sort_by')
-        limit = options.get('limit')
-        
-        result = data
-        if fields:
-            result = [{k: item.get(k) for k in fields} for item in result]
-        if sort_by:
-            result = sorted(result, key=lambda x: x.get(sort_by, ''))
-        if limit:
-            result = result[:limit]
-        return result
-    
-    async def _aggregate_data(self, data: List[Dict], options: Dict) -> Dict:
-        """Агрегация данных"""
-        self.transform_count += 1
-        group_by = options.get('group_by')
-        aggregate_field = options.get('field')
-        operation = options.get('operation', 'count')
-        
-        if not group_by:
-            return {'error': 'group_by required'}
-        
-        groups = {}
-        for item in data:
-            key = item.get(group_by)
-            if key not in groups:
-                groups[key] = []
-            groups[key].append(item)
-        
-        result = {}
-        for key, items in groups.items():
-            if operation == 'count':
-                result[key] = len(items)
-            elif operation == 'sum' and aggregate_field:
-                result[key] = sum(float(item.get(aggregate_field, 0)) for item in items)
-            elif operation == 'avg' and aggregate_field:
-                result[key] = sum(float(item.get(aggregate_field, 0)) for item in items) / len(items)
-        
-        return result
-    
-    async def _validate_data(self, data: List[Dict], options: Dict) -> Dict:
-        """Валидация данных"""
-        self.validation_count += 1
-        schema = options.get('schema', {})
-        required_fields = options.get('required_fields', [])
-        
-        errors = []
-        for idx, item in enumerate(data):
-            for field in required_fields:
-                if field not in item:
-                    errors.append(f"Row {idx}: missing field '{field}'")
-            
-            for field, rules in schema.items():
-                if field in item:
-                    value = item[field]
-                    if 'type' in rules:
-                        expected_type = rules['type']
-                        if expected_type == 'int' and not isinstance(value, int):
-                            try:
-                                int(value)
-                            except:
-                                errors.append(f"Row {idx}: {field} is not int")
-        
-        return {'valid': len(errors) == 0, 'errors': errors, 'checked': len(data)}
-    
-    async def _calculate_statistics(self, data: List[Dict], options: Dict) -> Dict:
-        """Расчёт статистики"""
-        field = options.get('field')
-        if not field:
-            return {'count': len(data)}
-        
-        values = [float(item.get(field, 0)) for item in data if field in item]
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
+        return json.loads(data)
+
+    async def parse_csv(
+        self,
+        data: Union[str, bytes],
+        delimiter: str = ",",
+        has_header: bool = True,
+    ) -> List[Dict[str, Any]]:
+        """
+        Парсинг CSV-данных.
+
+        :param data: строка или bytes с CSV
+        :param delimiter: разделитель
+        :param has_header: первая строка содержит заголовок
+        :return: список словарей (строки)
+        """
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
+
+        f = StringIO(data)
+        if has_header:
+            reader = csv.DictReader(f, delimiter=delimiter)
+            return list(reader)
+        else:
+            reader = csv.reader(f, delimiter=delimiter)
+            return [row for row in reader]
+
+    async def parse_xml(self, data: Union[str, bytes]) -> ET.Element:
+        """
+        Парсинг XML-данных.
+
+        :param data: строка или bytes с XML
+        :return: корневой элемент XML-дерева
+        """
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
+        return ET.fromstring(data)
+
+    async def filter_data(
+        self,
+        records: List[Dict[str, Any]],
+        predicate,
+    ) -> List[Dict[str, Any]]:
+        """
+        Фильтрация списка записей по предикату.
+
+        :param records: список словарей
+        :param predicate: функция record -> bool
+        :return: отфильтрованный список
+        """
+        return [r for r in records if predicate(r)]
+
+    async def aggregate(
+        self,
+        records: List[Dict[str, Any]],
+        field: str,
+        op: str = "sum",
+    ) -> Any:
+        """
+        Агрегация по полю.
+
+        :param records: список словарей
+        :param field: имя поля для агрегации
+        :param op: операция: sum, avg, min, max, count
+        :return: результат агрегации
+        """
+        values = [r.get(field) for r in records if r.get(field) is not None]
+
         if not values:
-            return {'error': 'No numeric values found'}
-        
+            return None
+
+        if op == "sum":
+            return sum(values)
+        if op == "avg":
+            return sum(values) / len(values)
+        if op == "min":
+            return min(values)
+        if op == "max":
+            return max(values)
+        if op == "count":
+            return len(values)
+
+        raise ValueError(f"Unsupported aggregation op: {op}")
+
+    async def to_dataframe(
+        self,
+        records: List[Dict[str, Any]],
+    ) -> "pd.DataFrame":
+        """
+        Преобразование списка записей в pandas DataFrame.
+
+        :param records: список словарей
+        :return: DataFrame
+        """
+        if not PANDAS_AVAILABLE:
+            raise RuntimeError("pandas is not installed")
+
+        return pd.DataFrame.from_records(records)
+
+    async def describe_dataframe(
+        self,
+        df: "pd.DataFrame",
+    ) -> Dict[str, Any]:
+        """
+        Статистическое описание DataFrame.
+
+        :param df: DataFrame
+        :return: словарь с основными статистиками
+        """
+        if not PANDAS_AVAILABLE:
+            raise RuntimeError("pandas is not installed")
+
+        desc = df.describe(include="all")
         return {
-            'count': len(values),
-            'sum': sum(values),
-            'mean': sum(values) / len(values),
-            'min': min(values),
-            'max': max(values)
+            "summary": desc.to_dict(),
+            "shape": df.shape,
+            "columns": list(df.columns),
         }
-    
-    @property
-    def stats(self) -> Dict:
-        """Возвращает статистику агента"""
-        return {
-            'operations_count': self.operations_count,
-            'parse_count': self.parse_count,
-            'transform_count': self.transform_count,
-            'validation_count': self.validation_count
-        }
+
+    async def validate_records(
+        self,
+        records: List[Dict[str, Any]],
+        schema: Dict[str, type],
+    ) -> Dict[str, Any]:
+        """
+        Простая валидация записей по схеме типов.
+
+        :param records: список словарей
+        :param schema: поле -> ожидаемый тип
+        :return: результат валидации
+        """
+        valid = []
+        invalid = []
+
+        for r in records:
+            errors = {}
+            for field, expected_type in schema.items():
+                value = r.get(field)
+                if value is None:
+                    errors[field] = "missing"
+                elif not isinstance(value, expected_type):
+                    errors[field] = f"expected {expected_type}, got {type(value)}"
+            if errors:
+                invalid.append({"record": r, "errors": errors})
+            else:
+                valid.append(r)
+
+        return {"valid": valid, "invalid": invalid}

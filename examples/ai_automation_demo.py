@@ -12,7 +12,10 @@ import logging
 import sys
 import os
 
+<<<<<<< HEAD
 # Add parent directory to path
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 from src.legion.integration import LegionAISystem
@@ -35,7 +38,11 @@ async def demo_simple_navigation():
     
     try:
         result = await system.execute_task(
+<<<<<<< HEAD
             description="Navigate to example.com and take a screenshot",
+=======
+            description="Navigate to example.com",
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
             context={'url': 'https://example.com'}
         )
         
@@ -44,6 +51,7 @@ async def demo_simple_navigation():
         await system.cleanup()
 
 
+<<<<<<< HEAD
 async def demo_complex_automation():
     """Demo: Complex multi-step automation."""
     logger.info("\n" + "="*80)
@@ -116,16 +124,24 @@ async def demo_mcp_tools():
 
 async def main():
     """Run all demos."""
+=======
+async def main():
+    """Run demos."""
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
     logger.info("\n" + "#"*80)
     logger.info("# Legion AI System - Demonstration Suite")
     logger.info("#"*80)
     
+<<<<<<< HEAD
     # Check environment
+=======
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
     if not os.getenv('OPENAI_API_KEY'):
         logger.warning("\n⚠ WARNING: OPENAI_API_KEY not set")
         logger.warning("Some demos will run in limited mode\n")
     
     try:
+<<<<<<< HEAD
         # Run demos
         await demo_simple_navigation()
         await asyncio.sleep(2)
@@ -137,6 +153,9 @@ async def main():
         await asyncio.sleep(2)
         
         await demo_mcp_tools()
+=======
+        await demo_simple_navigation()
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
         
     except KeyboardInterrupt:
         logger.info("\nDemo interrupted by user")
@@ -149,4 +168,8 @@ async def main():
 
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     asyncio.run(main())
+=======
+    asyncio.run(main())
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

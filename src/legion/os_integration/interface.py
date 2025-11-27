@@ -1,15 +1,18 @@
-"""OS Interface - unified API for OS-level capabilities.
+"""OS Interface - unified API for OS-level capabilities and system interaction.
 
-Объединяет все OS Integration компоненты в единый интерфейс:
-- Workspace management
-- Identity & authorization
-- Audit trail
-- Self-improvement
+Объединяет:
+- OS Integration компоненты (Workspace, Identity, Audit, Self-Improvement)
+- Безопасный доступ к файловой системе
+- Выполнение системных команд
+- Управление процессами
 """
 
+import os
+import subprocess
 import logging
+import shlex
 from pathlib import Path
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
 
 from .workspace import AgentWorkspace
 from .identity import AgentIdentity, Role, Permission
@@ -20,13 +23,14 @@ logger = logging.getLogger(__name__)
 
 
 class OSInterface:
-    """Унифицированный интерфейс для OS-возможностей.
+    """Унифицированный интерфейс для OS-возможностей и системного взаимодействия.
     
     Предоставляет единую точку доступа ко всем компонентам:
     - Workspace: изолированное файловое окружение
     - Identity: аутентификация и авторизация
     - Audit: tamper-evident логирование
     - Self-improvement: обучение и улучшение
+    - System: безопасное выполнение системных операций
     
     Attributes:
         agent_id: ID агента
@@ -121,6 +125,98 @@ class OSInterface:
             )
         
         return has_perm
+    
+    # === System Operations ===
+    
+    def execute_command(
+        self,
+        command: str,
+        shell: bool = False,
+        timeout: int = 30
+    ) -> Dict[str, Any]:
+        """Безопасное выполнение системной команды.
+        
+        Args:
+            command: Команда для выполнения
+            shell: Использовать shell
+            timeout: Таймаут в секундах
+        
+        Returns:
+            Dict с результатом выполнения
+        """
+        if not self.check_permission(Permission.EXECUTE):
+            raise PermissionError("Agent does not have EXECUTE permission")
+        
+        self.audit.log_event(
+            AuditEventType.MCP_INVOKE,
+            SeverityLevel.INFO,
+            {'command': command, 'shell': shell}
+        )
+        
+        try:
+            if not shell:
+                command = shlex.split(command)
+            
+            result = subprocess.run(
+                command,
+                shell=shell,
+                capture_output=True,
+                text=True,
+                timeout=timeout
+            )
+            
+            return {
+                'status': 'success',
+                'returncode': result.returncode,
+                'stdout': result.stdout,
+                'stderr': result.stderr
+            }
+        except Exception as e:
+            logger.error(f"Command execution failed: {e}")
+            return {
+                'status': 'error',
+                'error': str(e)
+            }
+    
+    def read_file(self, path: Path) -> str:
+        """Безопасное чтение файла.
+        
+        Args:
+            path: Путь к файлу
+        
+        Returns:
+            str: Содержимое файла
+        """
+        if not self.check_permission(Permission.FILE_SYSTEM):
+            raise PermissionError("Agent does not have FILE_SYSTEM permission")
+        
+        self.audit.log_event(
+            AuditEventType.FILE_READ,
+            SeverityLevel.INFO,
+            {'path': str(path)}
+        )
+        
+        return path.read_text(encoding='utf-8')
+    
+    def write_file(self, path: Path, content: str):
+        """Безопасная запись файла.
+        
+        Args:
+            path: Путь к файлу
+            content: Содержимое
+        """
+        if not self.check_permission(Permission.FILE_SYSTEM):
+            raise PermissionError("Agent does not have FILE_SYSTEM permission")
+        
+        self.audit.log_event(
+            AuditEventType.FILE_WRITE,
+            SeverityLevel.INFO,
+            {'path': str(path), 'size': len(content)}
+        )
+        
+        path.write_text(content, encoding='utf-8')
+    
+    # === Core Methods ===
     
     def cleanup(self):
         """Очистить все ресурсы."""

@@ -1,11 +1,11 @@
-"""OS Integration Layer for Legion AI System v2.2.
+"""OS Integration Layer для Legion v2.2 - Autonomous System Improvements.
 
-Предоставляет OS-уровневые возможности для агентов:
-- Workspace: изолированные файловые окружения
-- Identity: Entra-style аутентификация
-- Audit Trail: tamper-evident логирование
+Обеспечивает OS-уровневые возможности для агентов:
+- Workspace: изолированные файловые окружения с квотами
+- Identity: Entra-style аутентификация и RBAC
+- Audit Trail: tamper-evident логирование действий
 - Self-Improvement: долгосрочная память и обучение
-- Interface: унифицированный интерфейс для OS API
+- Interface: унифицированный API для всех компонентов
 """
 
 from .workspace import AgentWorkspace
@@ -23,3 +23,4 @@ __all__ = [
 ]
 
 __version__ = '2.2.0'
+

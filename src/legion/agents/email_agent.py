@@ -19,11 +19,8 @@ from typing import List, Optional, Dict, Any
 import asyncio
 from pathlib import Path
 
-import sys
-sys.path.insert(0, str(Path(__file__).parent.parent))
-
-from agents import LegionAgent
-from logging_config import get_agent_logger
+from ..base_agent import LegionAgent
+from ..logging_config import get_agent_logger
 
 
 class EmailAgent(LegionAgent):
@@ -296,7 +293,7 @@ class EmailAgent(LegionAgent):
 if __name__ == "__main__":
     async def test_email_agent():
         """Тестирование EmailAgent."""
-        from logging_config import setup_logging
+        from ..logging_config import setup_logging
         
         logger = setup_logging("EmailAgentTest", "INFO")
         logger.info("Тест EmailAgent")

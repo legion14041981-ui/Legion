@@ -1,19 +1,25 @@
-"""Agent Workspace - isolated filesystem environments for agents.
+"""Agent Workspace - isolated filesystem environments and resource isolation for agents.
 
-Предоставляет изолированные файловые окружения для каждого агента:
+Предоставляет изолированные окружения для каждого агента:
 - Собственная директория с квотами
 - Контроль доступа (read/write/execute)
 - Auto-cleanup при завершении
 - Resource usage tracking
+- Ограниченный доступ к файловой системе
+- Лимиты ресурсов (CPU, RAM)
+- Сетевая изоляция
 """
 
 import os
 import shutil
+import tempfile
 import logging
-from pathlib import Path
-from typing import Optional, Dict, Any
-from datetime import datetime
 import json
+import psutil
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +31,7 @@ class AgentWorkspace:
     - Ограничением размера (quota_mb)
     - Автоматической очисткой (auto_cleanup)
     - Отслеживанием использования ресурсов
+    - Resource limits (опционально)
     
     Attributes:
         agent_id: Уникальный идентификатор агента
@@ -127,14 +134,14 @@ class AgentWorkspace:
             raise FileNotFoundError(f"Файл не найден: {file_path}")
         return file_path.read_text(encoding='utf-8')
     
-    def list_files(self, subdir: str = None) -> list[Path]:
+    def list_files(self, subdir: str = None) -> List[Path]:
         """Получить список файлов.
         
         Args:
             subdir: Поддиректория (если None - все файлы)
         
         Returns:
-            list[Path]: Список путей к файлам
+            List[Path]: Список путей к файлам
         """
         search_path = self.workspace_path / subdir if subdir else self.workspace_path
         return list(search_path.rglob('*')) if search_path.exists() else []
@@ -154,6 +161,23 @@ class AgentWorkspace:
             'files_count': len(self.list_files()),
             **self.metadata
         }
+    
+    def get_resource_usage(self) -> Dict[str, Any]:
+        """Получить использование системных ресурсов.
+        
+        Returns:
+            Dict: CPU и RAM использование
+        """
+        try:
+            process = psutil.Process()
+            return {
+                'cpu_percent': process.cpu_percent(interval=0.1),
+                'memory_mb': process.memory_info().rss / (1024 * 1024),
+                'memory_percent': process.memory_percent()
+            }
+        except Exception as e:
+            logger.error(f"Failed to get resource usage: {e}")
+            return {}
     
     def cleanup(self):
         """Очистить workspace (удалить все файлы)."""

@@ -5,6 +5,8 @@
 - Tamper detection (обнаружение изменений)
 - Cryptographic signatures
 - Compliance-ready формат
+- Логирование всех операций агентов
+- Отслеживание доступа к ресурсам
 """
 
 import hashlib

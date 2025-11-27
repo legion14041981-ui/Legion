@@ -16,7 +16,7 @@ import logging
 import asyncio
 import statistics
 from pathlib import Path
-from typing import Dict, List, Any, Optional
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict
 

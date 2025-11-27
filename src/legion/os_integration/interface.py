@@ -12,7 +12,7 @@ import subprocess
 import logging
 import shlex
 from pathlib import Path
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any
 
 from .workspace import AgentWorkspace
 from .identity import AgentIdentity, Role, Permission

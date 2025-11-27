@@ -11,6 +11,7 @@ Legion v2.0 transforms the framework into an AI-powered automation system with:
 
 ## ⚡ Quick Start (5 minutes)
 
+<<<<<<< HEAD
 ### 1. Clone & Checkout
 
 ```bash
@@ -281,3 +282,16 @@ PLAYWRIGHT_HEADLESS=false  # For debugging
 ---
 
 **Ready to automate? Start with the examples above!** 🚀
+=======
+See full guide above for installation, configuration, and examples.
+
+## 📚 Documentation
+
+- **GitHub**: https://github.com/legion14041981-ui/Legion
+- **Notion**: https://www.notion.so/2ac65511388d815fa690c20766ed1206
+- **PR #1**: https://github.com/legion14041981-ui/Legion/pull/1
+
+---
+
+**Ready to automate? Start now!** 🚀
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

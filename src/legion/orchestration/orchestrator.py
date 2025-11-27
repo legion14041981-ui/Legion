@@ -26,7 +26,6 @@ class AgentState(TypedDict):
     next_agent: str
     error: Optional[str]
 
-
 class MultiAgentOrchestrator:
     """Orchestrates multiple Legion agents.
     
@@ -179,6 +178,7 @@ class MultiAgentOrchestrator:
         Returns:
             Compiled graph ready for execution
         """
+           
         logger.info("Compiling orchestration graph...")
         self._compiled_graph = self.graph.compile()
         return self._compiled_graph
@@ -212,12 +212,12 @@ class MultiAgentOrchestrator:
                 'success': True,
                 'results': final_state['results'],
                 'messages': final_state['messages'],
-                'error': final_state.get('error')
-            }
+                'error': final_state.get('error')                   
+}
         except Exception as e:
             logger.error(f"Orchestration failed: {e}")
             return {
                 'success': False,
                 'error': str(e),
                 'results': {}
-            }
+}

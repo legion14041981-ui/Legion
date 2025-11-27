@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # Git
 .git
 .gitignore
@@ -12,11 +13,33 @@
 # IDEs
 .vscode
 .idea
+=======
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+.venv
+
+# IDE
+.vscode/
+.idea/
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 *.swp
 *.swo
 *~
 .DS_Store
 
+<<<<<<< HEAD
 # Python cache
 __pycache__
 *.py[cod]
@@ -109,3 +132,25 @@ setup.cfg
 setup.py
 MANIFEST.in
 tox.ini
+=======
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Environment
+.env
+.env.local
+
+# Node
+node_modules/
+npm-debug.log
+
+# Documentation
+docs/_build/
+
+# Secrets
+secrets/
+*.pem
+*.key
+>>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

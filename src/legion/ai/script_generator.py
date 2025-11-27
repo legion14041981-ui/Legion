@@ -76,8 +76,7 @@ class ScriptGenerator:
                     }
                 ],
                 temperature=0.2,  # Low temperature for deterministic code
-                max_tokens=2000
-            )
+           )
             
             code = response.choices[0].message.content
             

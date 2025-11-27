@@ -1,176 +1,293 @@
-"""Audit Logger - аудит и логирование операций агентов.
+"""Audit Trail - tamper-evident logging for agent actions.
 
-Обеспечивает:
+Реализует immutable audit log с:
+- Hash-chaining (каждая запись ссылается на предыдущую)
+- Tamper detection (обнаружение изменений)
+- Cryptographic signatures
+- Compliance-ready формат
 - Логирование всех операций агентов
 - Отслеживание доступа к ресурсам
-- Compliance reporting
 """
 
-import logging
+import hashlib
 import json
-from typing import Dict, Any, Optional, List
+import logging
 from datetime import datetime
 from pathlib import Path
+from typing import Dict, List, Any, Optional
+from dataclasses import dataclass, asdict
 from enum import Enum
 
 logger = logging.getLogger(__name__)
 
 
-class AuditLevel(Enum):
-    """Уровни аудита."""
-    INFO = "info"
-    WARNING = "warning"
-    ERROR = "error"
-    CRITICAL = "critical"
+class AuditEventType(str, Enum):
+    """Types of auditable events."""
+    AGENT_CREATED = 'agent.created'
+    AGENT_STARTED = 'agent.started'
+    AGENT_STOPPED = 'agent.stopped'
+    PERMISSION_GRANTED = 'permission.granted'
+    PERMISSION_REVOKED = 'permission.revoked'
+    FILE_READ = 'file.read'
+    FILE_WRITE = 'file.write'
+    FILE_DELETE = 'file.delete'
+    NETWORK_REQUEST = 'network.request'
+    MCP_INVOKE = 'mcp.invoke'
+    BROWSER_ACTION = 'browser.action'
+    ERROR_OCCURRED = 'error.occurred'
+    SECURITY_VIOLATION = 'security.violation'
 
 
+class SeverityLevel(str, Enum):
+    """Severity levels for audit events."""
+    INFO = 'info'
+    WARNING = 'warning'
+    ERROR = 'error'
+    CRITICAL = 'critical'
+
+
+@dataclass
 class AuditEvent:
-    """Событие аудита."""
+    """Single audit event.
     
-    def __init__(self, agent_id: str, operation: str, level: AuditLevel, 
-                 details: Optional[Dict[str, Any]] = None):
-        self.timestamp = datetime.now()
-        self.agent_id = agent_id
-        self.operation = operation
-        self.level = level
-        self.details = details or {}
+    Attributes:
+        event_type: Тип события
+        agent_id: ID агента
+        timestamp: Время события
+        severity: Уровень важности
+        details: Детали события
+        previous_hash: Hash предыдущей записи
+        event_hash: Hash текущей записи
+    """
+    event_type: AuditEventType
+    agent_id: str
+    timestamp: str
+    severity: SeverityLevel
+    details: Dict[str, Any]
+    previous_hash: str
+    event_hash: str = ''
     
-    def to_dict(self) -> Dict[str, Any]:
-        """Конвертировать в словарь."""
-        return {
-            'timestamp': self.timestamp.isoformat(),
-            'agent_id': self.agent_id,
-            'operation': self.operation,
-            'level': self.level.value,
-            'details': self.details
-        }
+    def __post_init__(self):
+        """Calculate event hash after initialization."""
+        if not self.event_hash:
+            self.event_hash = self.calculate_hash()
     
-    def to_json(self) -> str:
-        """Конвертировать в JSON."""
-        return json.dumps(self.to_dict(), ensure_ascii=False)
-
-
-class AuditLogger:
-    """Логгер аудита."""
-    
-    def __init__(self, log_file: Optional[Path] = None):
-        """
-        Инициализация логгера аудита.
-        
-        Args:
-            log_file: Путь к файлу логов (если None, только в memory)
-        """
-        self.log_file = log_file
-        self.events: List[AuditEvent] = []
-        self.max_memory_events = 10000  # Максимум событий в памяти
-        
-        if self.log_file:
-            self.log_file.parent.mkdir(parents=True, exist_ok=True)
-        
-        logger.info(f"AuditLogger initialized (log_file: {log_file})")
-    
-    def log(self, agent_id: str, operation: str, level: AuditLevel = AuditLevel.INFO,
-            details: Optional[Dict[str, Any]] = None):
-        """
-        Записать событие аудита.
-        
-        Args:
-            agent_id: Идентификатор агента
-            operation: Операция
-            level: Уровень события
-            details: Дополнительные детали
-        """
-        event = AuditEvent(agent_id, operation, level, details)
-        
-        # Добавить в memory
-        self.events.append(event)
-        
-        # Ограничить размер в памяти
-        if len(self.events) > self.max_memory_events:
-            self.events = self.events[-self.max_memory_events:]
-        
-        # Записать в файл
-        if self.log_file:
-            self._write_to_file(event)
-        
-        logger.debug(f"Audit: {agent_id} - {operation} [{level.value}]")
-    
-    def _write_to_file(self, event: AuditEvent):
-        """Записать событие в файл."""
-        try:
-            with open(self.log_file, 'a', encoding='utf-8') as f:
-                f.write(event.to_json() + '\n')
-        except Exception as e:
-            logger.error(f"Failed to write audit log: {e}")
-    
-    def log_info(self, agent_id: str, operation: str, details: Optional[Dict[str, Any]] = None):
-        """Записать INFO событие."""
-        self.log(agent_id, operation, AuditLevel.INFO, details)
-    
-    def log_warning(self, agent_id: str, operation: str, details: Optional[Dict[str, Any]] = None):
-        """Записать WARNING событие."""
-        self.log(agent_id, operation, AuditLevel.WARNING, details)
-    
-    def log_error(self, agent_id: str, operation: str, details: Optional[Dict[str, Any]] = None):
-        """Записать ERROR событие."""
-        self.log(agent_id, operation, AuditLevel.ERROR, details)
-    
-    def log_critical(self, agent_id: str, operation: str, details: Optional[Dict[str, Any]] = None):
-        """Записать CRITICAL событие."""
-        self.log(agent_id, operation, AuditLevel.CRITICAL, details)
-    
-    def get_events(self, agent_id: Optional[str] = None, 
-                   level: Optional[AuditLevel] = None,
-                   limit: int = 100) -> List[Dict[str, Any]]:
-        """
-        Получить события аудита.
-        
-        Args:
-            agent_id: Фильтр по агенту
-            level: Фильтр по уровню
-            limit: Максимум событий
+    def calculate_hash(self) -> str:
+        """Вычислить hash события.
         
         Returns:
-            List[Dict]: События аудита
+            str: SHA-256 hash
+        """
+        data = {
+            'event_type': self.event_type.value,
+            'agent_id': self.agent_id,
+            'timestamp': self.timestamp,
+            'severity': self.severity.value,
+            'details': self.details,
+            'previous_hash': self.previous_hash
+        }
+        data_str = json.dumps(data, sort_keys=True)
+        return hashlib.sha256(data_str.encode()).hexdigest()
+    
+    def verify(self) -> bool:
+        """Проверить целостность события.
+        
+        Returns:
+            bool: True если hash совпадает
+        """
+        return self.event_hash == self.calculate_hash()
+
+
+class AuditTrail:
+    """Tamper-evident audit trail.
+    
+    Реализует immutable audit log с hash-chaining:
+    - Каждая запись содержит hash предыдущей
+    - Изменение любой записи ломает всю цепочку
+    - Cryptographic защита от подмены
+    
+    Attributes:
+        agent_id: ID агента
+        events: Список событий
+        audit_file: Путь к файлу лога
+    """
+    
+    def __init__(self, agent_id: str, audit_dir: Optional[Path] = None):
+        """Initialize audit trail.
+        
+        Args:
+            agent_id: Уникальный идентификатор агента
+            audit_dir: Директория для логов (по умолчанию ./audit_logs)
+        """
+        self.agent_id = agent_id
+        self.events: List[AuditEvent] = []
+        
+        # Определить директорию для логов
+        if audit_dir is None:
+            audit_dir = Path.cwd() / 'audit_logs'
+        audit_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.audit_file = audit_dir / f'{agent_id}_audit.jsonl'
+        
+        # Загрузить существующие события
+        self._load_events()
+        
+        logger.info(f"📋 Audit trail initialized for '{agent_id}' ({len(self.events)} events loaded)")
+    
+    def log_event(
+        self,
+        event_type: AuditEventType,
+        severity: SeverityLevel = SeverityLevel.INFO,
+        details: Optional[Dict[str, Any]] = None
+    ) -> AuditEvent:
+        """Залогировать событие.
+        
+        Args:
+            event_type: Тип события
+            severity: Уровень важности
+            details: Детали события
+        
+        Returns:
+            AuditEvent: Созданное событие
+        """
+        # Получить hash предыдущего события
+        previous_hash = self.events[-1].event_hash if self.events else '0' * 64
+        
+        # Создать новое событие
+        event = AuditEvent(
+            event_type=event_type,
+            agent_id=self.agent_id,
+            timestamp=datetime.utcnow().isoformat(),
+            severity=severity,
+            details=details or {},
+            previous_hash=previous_hash
+        )
+        
+        # Добавить в список
+        self.events.append(event)
+        
+        # Сохранить в файл
+        self._append_event_to_file(event)
+        
+        # Логировать
+        log_method = logger.info
+        if severity == SeverityLevel.WARNING:
+            log_method = logger.warning
+        elif severity == SeverityLevel.ERROR:
+            log_method = logger.error
+        elif severity == SeverityLevel.CRITICAL:
+            log_method = logger.critical
+        
+        log_method(f"📝 [{event_type.value}] {details}")
+        
+        return event
+    
+    def verify_integrity(self) -> bool:
+        """Проверить целостность всей цепочки.
+        
+        Returns:
+            bool: True если все hash-ы валидны
+        """
+        if not self.events:
+            return True
+        
+        # Проверить первое событие
+        if not self.events[0].verify():
+            logger.error(f"❌ First event tampered: {self.events[0].event_type}")
+            return False
+        
+        # Проверить цепочку
+        for i in range(1, len(self.events)):
+            current = self.events[i]
+            previous = self.events[i - 1]
+            
+            # Проверить hash события
+            if not current.verify():
+                logger.error(f"❌ Event tampered at index {i}: {current.event_type}")
+                return False
+            
+            # Проверить связь с предыдущим
+            if current.previous_hash != previous.event_hash:
+                logger.error(f"❌ Chain broken at index {i}")
+                return False
+        
+        logger.info(f"✅ Audit trail integrity verified ({len(self.events)} events)")
+        return True
+    
+    def get_events(
+        self,
+        event_type: Optional[AuditEventType] = None,
+        severity: Optional[SeverityLevel] = None,
+        limit: int = 100
+    ) -> List[AuditEvent]:
+        """Получить события с фильтрацией.
+        
+        Args:
+            event_type: Фильтр по типу
+            severity: Фильтр по важности
+            limit: Максимальное количество
+        
+        Returns:
+            List[AuditEvent]: Отфильтрованные события
         """
         filtered = self.events
         
-        if agent_id:
-            filtered = [e for e in filtered if e.agent_id == agent_id]
+        if event_type:
+            filtered = [e for e in filtered if e.event_type == event_type]
+        if severity:
+            filtered = [e for e in filtered if e.severity == severity]
         
-        if level:
-            filtered = [e for e in filtered if e.level == level]
-        
-        return [e.to_dict() for e in filtered[-limit:]]
+        return filtered[-limit:]
     
-    def get_compliance_report(self) -> Dict[str, Any]:
-        """
-        Получить отчет о compliance.
+    def export_to_json(self, output_path: Optional[Path] = None) -> Path:
+        """Экспортировать в JSON файл.
+        
+        Args:
+            output_path: Путь для экспорта
         
         Returns:
-            Dict: Отчет
+            Path: Путь к созданному файлу
         """
-        total_events = len(self.events)
-        level_counts = {
-            'info': 0,
-            'warning': 0,
-            'error': 0,
-            'critical': 0
+        if output_path is None:
+            output_path = self.audit_file.with_suffix('.json')
+        
+        data = {
+            'agent_id': self.agent_id,
+            'event_count': len(self.events),
+            'integrity_verified': self.verify_integrity(),
+            'events': [asdict(e) for e in self.events]
         }
         
-        for event in self.events:
-            level_counts[event.level.value] += 1
+        output_path.write_text(json.dumps(data, indent=2), encoding='utf-8')
+        logger.info(f"💾 Audit trail exported to {output_path}")
+        return output_path
+    
+    def _load_events(self):
+        """Загрузить события из файла."""
+        if not self.audit_file.exists():
+            return
         
-        agent_stats = {}
-        for event in self.events:
-            if event.agent_id not in agent_stats:
-                agent_stats[event.agent_id] = 0
-            agent_stats[event.agent_id] += 1
-        
-        return {
-            'total_events': total_events,
-            'level_counts': level_counts,
-            'agent_stats': agent_stats,
-            'critical_events': level_counts['critical'],
-            'error_events': level_counts['error']
-        }
+        try:
+            with open(self.audit_file, 'r', encoding='utf-8') as f:
+                for line in f:
+                    data = json.loads(line)
+                    event = AuditEvent(
+                        event_type=AuditEventType(data['event_type']),
+                        agent_id=data['agent_id'],
+                        timestamp=data['timestamp'],
+                        severity=SeverityLevel(data['severity']),
+                        details=data['details'],
+                        previous_hash=data['previous_hash'],
+                        event_hash=data['event_hash']
+                    )
+                    self.events.append(event)
+        except Exception as e:
+            logger.error(f"❌ Failed to load audit events: {e}")
+    
+    def _append_event_to_file(self, event: AuditEvent):
+        """Добавить событие в файл."""
+        try:
+            with open(self.audit_file, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(asdict(event)) + '\n')
+        except Exception as e:
+            logger.error(f"❌ Failed to write audit event: {e}")

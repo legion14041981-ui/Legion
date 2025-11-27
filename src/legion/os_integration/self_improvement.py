@@ -1,301 +1,308 @@
-"""Self-Improvement Engine - AI-powered самооптимизация системы.
+"""Self-Improvement Engine - long-term memory, continuous learning и AI-powered самооптимизация.
 
-Обеспечивает:
+Реализует систему обучения и улучшения агентов:
+- Long-term memory (долгосрочная память)
+- Pattern recognition (распознавание паттернов)
+- Performance optimization (оптимизация производительности)
+- Continuous learning
 - Анализ производительности агентов
 - Автоматическое выявление узких мест
 - Генерация рекомендаций по оптимизации
 - Применение улучшений в runtime
 """
 
+import json
 import logging
 import asyncio
-from typing import Dict, Any, List, Optional
+import statistics
+from pathlib import Path
+from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 from collections import defaultdict
-import statistics
 
 logger = logging.getLogger(__name__)
 
 
-class PerformanceSnapshot:
-    """Снимок производительности системы."""
-    
-    def __init__(self, metrics: Dict[str, Any]):
-        self.timestamp = datetime.now()
-        self.metrics = metrics
-        self.agent_timings = metrics.get('agent_timings', {})
-        self.cache_hit_rate = metrics.get('cache_hit_rate', 0)
-        self.memory_usage_mb = metrics.get('memory_usage_mb', 0)
-        self.task_throughput = metrics.get('tasks_per_second', 0)
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Конвертировать в словарь."""
-        return {
-            'timestamp': self.timestamp.isoformat(),
-            'metrics': self.metrics,
-            'agent_timings': self.agent_timings,
-            'cache_hit_rate': self.cache_hit_rate,
-            'memory_usage_mb': self.memory_usage_mb,
-            'task_throughput': self.task_throughput
-        }
-
-
-class OptimizationSuggestion:
-    """Рекомендация по оптимизации."""
-    
-    def __init__(self, category: str, severity: str, description: str, 
-                 action: str, expected_impact: str):
-        self.category = category  # cache, async, memory, etc.
-        self.severity = severity  # low, medium, high, critical
-        self.description = description
-        self.action = action
-        self.expected_impact = expected_impact
-        self.created_at = datetime.now()
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Конвертировать в словарь."""
-        return {
-            'category': self.category,
-            'severity': self.severity,
-            'description': self.description,
-            'action': self.action,
-            'expected_impact': self.expected_impact,
-            'created_at': self.created_at.isoformat()
-        }
-
-
 class SelfImprovementEngine:
-    """AI-powered движок самооптимизации."""
+    """Движок самоулучшения агента.
     
-    def __init__(self, core_instance=None):
-        """
-        Инициализация движка.
+    Сохраняет и анализирует:
+    - Успешные/неуспешные действия
+    - Производительность разных стратегий
+    - Частые паттерны и ошибки
+    - Knowledge base для будущих задач
+    - Метрики производительности
+    - Рекомендации по оптимизации
+    
+    Attributes:
+        agent_id: ID агента
+        memory_file: Путь к файлу памяти
+        knowledge: База знаний
+    """
+    
+    def __init__(self, agent_id: str, memory_dir: Optional[Path] = None):
+        """Инициализировать self-improvement engine.
         
         Args:
-            core_instance: Ссылка на LegionCore для доступа к метрикам
+            agent_id: Уникальный ID агента
+            memory_dir: Директория для памяти
         """
-        self.core = core_instance
-        self.snapshots: List[PerformanceSnapshot] = []
-        self.suggestions: List[OptimizationSuggestion] = []
-        self.applied_optimizations: List[str] = []
-        self.max_snapshots = 1000  # Хранить последние 1000 снимков
+        self.agent_id = agent_id
         
-        logger.info("SelfImprovementEngine initialized")
+        if memory_dir is None:
+            memory_dir = Path.cwd() / 'agent_memory'
+        memory_dir.mkdir(parents=True, exist_ok=True)
+        
+        self.memory_file = memory_dir / f'{agent_id}_memory.json'
+        
+        # Структура памяти
+        self.knowledge = {
+            'successful_actions': [],
+            'failed_actions': [],
+            'performance_metrics': defaultdict(list),
+            'learned_patterns': {},
+            'improvement_suggestions': [],
+            'optimization_history': [],
+            'metadata': {
+                'created_at': datetime.now().isoformat(),
+                'last_updated': datetime.now().isoformat(),
+                'total_experiences': 0,
+                'optimization_count': 0
+            }
+        }
+        
+        # Загрузить существующую память
+        self._load_memory()
+        
+        logger.info(f"🧠 Self-improvement engine initialized for '{agent_id}'")
     
-    async def take_snapshot(self) -> PerformanceSnapshot:
-        """
-        Сделать снимок текущей производительности.
-        
-        Returns:
-            PerformanceSnapshot: Снимок метрик
-        """
-        if not self.core:
-            raise RuntimeError("Core instance not set")
-        
-        metrics = self.core.get_metrics()
-        snapshot = PerformanceSnapshot(metrics)
-        
-        self.snapshots.append(snapshot)
-        
-        # Ограничить размер истории
-        if len(self.snapshots) > self.max_snapshots:
-            self.snapshots = self.snapshots[-self.max_snapshots:]
-        
-        logger.debug(f"Performance snapshot taken: {snapshot.task_throughput:.2f} tasks/s")
-        return snapshot
-    
-    def analyze_performance(self) -> List[OptimizationSuggestion]:
-        """
-        Анализ производительности и генерация рекомендаций.
-        
-        Returns:
-            List[OptimizationSuggestion]: Список рекомендаций
-        """
-        if len(self.snapshots) < 10:
-            logger.info("Not enough data for analysis (need 10+ snapshots)")
-            return []
-        
-        suggestions = []
-        
-        # Анализ 1: Cache hit rate
-        recent_snapshots = self.snapshots[-100:]
-        avg_hit_rate = statistics.mean([s.cache_hit_rate for s in recent_snapshots])
-        
-        if avg_hit_rate < 80:
-            suggestions.append(OptimizationSuggestion(
-                category='cache',
-                severity='high',
-                description=f'Low cache hit rate: {avg_hit_rate:.1f}% (target: >95%)',
-                action='Increase hot_cache_size from 128 to 256',
-                expected_impact='Cache hit rate: +10-15%, latency: -20%'
-            ))
-        
-        # Анализ 2: Agent timing outliers
-        agent_timings = defaultdict(list)
-        for snapshot in recent_snapshots:
-            for agent_id, timing in snapshot.agent_timings.items():
-                agent_timings[agent_id].append(timing)
-        
-        for agent_id, timings in agent_timings.items():
-            if len(timings) < 5:
-                continue
-            
-            median_time = statistics.median(timings)
-            p95_time = statistics.quantiles(timings, n=20)[18]  # 95th percentile
-            
-            if p95_time > median_time * 3:
-                suggestions.append(OptimizationSuggestion(
-                    category='async',
-                    severity='medium',
-                    description=f'Agent {agent_id} has high latency variance (p95: {p95_time:.1f}ms, median: {median_time:.1f}ms)',
-                    action=f'Convert {agent_id} to fully async execution',
-                    expected_impact='P95 latency: -40-60%'
-                ))
-        
-        # Анализ 3: Memory usage trend
-        memory_trend = [s.memory_usage_mb for s in recent_snapshots[-20:]]
-        if len(memory_trend) >= 10:
-            # Проверка роста памяти
-            first_half_avg = statistics.mean(memory_trend[:10])
-            second_half_avg = statistics.mean(memory_trend[10:])
-            
-            growth_rate = (second_half_avg - first_half_avg) / first_half_avg * 100
-            
-            if growth_rate > 20:
-                suggestions.append(OptimizationSuggestion(
-                    category='memory',
-                    severity='critical',
-                    description=f'Memory leak detected: {growth_rate:.1f}% growth in 20 snapshots',
-                    action='Enable garbage collection profiling, check for circular references',
-                    expected_impact='Memory usage: -30-50%'
-                ))
-        
-        # Анализ 4: Task throughput degradation
-        throughputs = [s.task_throughput for s in recent_snapshots[-50:]]
-        if len(throughputs) >= 20:
-            first_quarter = statistics.mean(throughputs[:10])
-            last_quarter = statistics.mean(throughputs[-10:])
-            
-            degradation = (first_quarter - last_quarter) / first_quarter * 100
-            
-            if degradation > 15:
-                suggestions.append(OptimizationSuggestion(
-                    category='throughput',
-                    severity='high',
-                    description=f'Throughput degradation: -{degradation:.1f}% over last 50 snapshots',
-                    action='Increase worker pool size or optimize task queue',
-                    expected_impact='Throughput: +20-30%'
-                ))
-        
-        self.suggestions.extend(suggestions)
-        
-        if suggestions:
-            logger.info(f"Generated {len(suggestions)} optimization suggestions")
-            for s in suggestions:
-                logger.info(f"  [{s.severity.upper()}] {s.category}: {s.description}")
-        
-        return suggestions
-    
-    async def apply_optimization(self, suggestion: OptimizationSuggestion) -> bool:
-        """
-        Применить оптимизацию.
+    def record_success(self, action: str, context: Dict[str, Any], result: Any):
+        """Записать успешное действие.
         
         Args:
-            suggestion: Рекомендация для применения
-        
-        Returns:
-            bool: True если применено успешно
+            action: Название действия
+            context: Контекст выполнения
+            result: Результат
         """
-        if not self.core:
-            logger.error("Core instance not available")
-            return False
+        experience = {
+            'action': action,
+            'context': context,
+            'result': result,
+            'timestamp': datetime.now().isoformat()
+        }
         
-        try:
-            # Применить оптимизацию в зависимости от категории
-            if suggestion.category == 'cache':
-                if 'Increase hot_cache_size' in suggestion.action:
-                    old_size = self.core.cache.hot_cache_size
-                    new_size = 256
-                    self.core.cache.hot_cache_size = new_size
-                    logger.info(f"✅ Applied: hot_cache_size {old_size} → {new_size}")
-                    
-            elif suggestion.category == 'throughput':
-                if 'worker pool size' in suggestion.action:
-                    # Добавить воркеров динамически
-                    for _ in range(2):
-                        task = asyncio.create_task(self.core._worker())
-                        self.core._worker_tasks.add(task)
-                    logger.info(f"✅ Applied: Added 2 workers")
-            
-            self.applied_optimizations.append(f"{suggestion.category}:{suggestion.action}")
-            return True
-            
-        except Exception as e:
-            logger.error(f"Failed to apply optimization: {e}")
-            return False
+        self.knowledge['successful_actions'].append(experience)
+        self.knowledge['metadata']['total_experiences'] += 1
+        self._save_memory()
+        
+        logger.debug(f"✅ Success recorded: {action}")
     
-    async def auto_optimize(self, interval_seconds: int = 300):
-        """
-        Автоматическая оптимизация в фоновом режиме.
+    def record_failure(self, action: str, context: Dict[str, Any], error: str):
+        """Записать неуспешное действие.
         
         Args:
-            interval_seconds: Интервал между циклами оптимизации
+            action: Название действия
+            context: Контекст
+            error: Описание ошибки
         """
-        logger.info(f"Started auto-optimization (interval: {interval_seconds}s)")
+        experience = {
+            'action': action,
+            'context': context,
+            'error': error,
+            'timestamp': datetime.now().isoformat()
+        }
         
-        while True:
-            try:
-                await asyncio.sleep(interval_seconds)
-                
-                # Снять снимок
-                await self.take_snapshot()
-                
-                # Проанализировать
-                suggestions = self.analyze_performance()
-                
-                # Применить критичные и высокоприоритетные
-                for suggestion in suggestions:
-                    if suggestion.severity in ['critical', 'high']:
-                        logger.info(f"Auto-applying: {suggestion.description}")
-                        await self.apply_optimization(suggestion)
-                
-            except asyncio.CancelledError:
-                logger.info("Auto-optimization stopped")
-                break
-            except Exception as e:
-                logger.error(f"Auto-optimization error: {e}")
-                await asyncio.sleep(60)  # Retry after 1 minute
+        self.knowledge['failed_actions'].append(experience)
+        self.knowledge['metadata']['total_experiences'] += 1
+        self._save_memory()
+        
+        logger.debug(f"❌ Failure recorded: {action} - {error}")
     
-    def get_improvement_report(self) -> Dict[str, Any]:
+    def record_performance(self, metric_name: str, value: float, context: Dict = None):
+        """Записать метрику производительности.
+        
+        Args:
+            metric_name: Название метрики
+            value: Значение
+            context: Контекст
         """
-        Получить отчет о самооптимизации.
+        metric = {
+            'value': value,
+            'context': context or {},
+            'timestamp': datetime.now().isoformat()
+        }
+        
+        self.knowledge['performance_metrics'][metric_name].append(metric)
+        self._save_memory()
+        
+        logger.debug(f"📊 Performance metric: {metric_name}={value}")
+    
+    def learn_pattern(self, pattern_name: str, pattern_data: Dict[str, Any]):
+        """Сохранить распознанный паттерн.
+        
+        Args:
+            pattern_name: Название паттерна
+            pattern_data: Данные паттерна
+        """
+        self.knowledge['learned_patterns'][pattern_name] = {
+            'data': pattern_data,
+            'learned_at': datetime.now().isoformat(),
+            'usage_count': 0
+        }
+        self._save_memory()
+        
+        logger.info(f"🎯 Pattern learned: {pattern_name}")
+    
+    def get_pattern(self, pattern_name: str) -> Optional[Dict]:
+        """Получить сохранённый паттерн.
+        
+        Args:
+            pattern_name: Название паттерна
         
         Returns:
-            Dict: Отчет с метриками улучшений
+            Optional[Dict]: Данные паттерна или None
         """
-        if len(self.snapshots) < 2:
-            return {'status': 'insufficient_data'}
+        pattern = self.knowledge['learned_patterns'].get(pattern_name)
+        if pattern:
+            pattern['usage_count'] += 1
+            self._save_memory()
+        return pattern
+    
+    def suggest_improvement(self, suggestion: str, priority: str = 'medium'):
+        """Добавить предложение по улучшению.
         
-        first_snapshot = self.snapshots[0]
-        last_snapshot = self.snapshots[-1]
+        Args:
+            suggestion: Текст предложения
+            priority: Приоритет (low/medium/high)
+        """
+        improvement = {
+            'suggestion': suggestion,
+            'priority': priority,
+            'suggested_at': datetime.now().isoformat(),
+            'applied': False
+        }
         
-        # Вычислить улучшения
-        throughput_improvement = (
-            (last_snapshot.task_throughput - first_snapshot.task_throughput) 
-            / first_snapshot.task_throughput * 100
-        ) if first_snapshot.task_throughput > 0 else 0
+        self.knowledge['improvement_suggestions'].append(improvement)
+        self._save_memory()
         
-        cache_improvement = last_snapshot.cache_hit_rate - first_snapshot.cache_hit_rate
+        logger.info(f"💡 Improvement suggested: {suggestion}")
+    
+    def apply_optimization(self, optimization: Dict[str, Any]):
+        """Применить оптимизацию.
+        
+        Args:
+            optimization: Описание оптимизации
+        """
+        optimization['applied_at'] = datetime.now().isoformat()
+        self.knowledge['optimization_history'].append(optimization)
+        self.knowledge['metadata']['optimization_count'] += 1
+        self._save_memory()
+        
+        logger.info(f"🚀 Optimization applied: {optimization.get('description', 'Unknown')}")
+    
+    def analyze_performance(self, metric_name: str, window_hours: int = 24) -> Dict[str, Any]:
+        """Анализ производительности за период.
+        
+        Args:
+            metric_name: Название метрики
+            window_hours: Окно анализа в часах
+        
+        Returns:
+            Dict: Статистика производительности
+        """
+        metrics = self.knowledge['performance_metrics'].get(metric_name, [])
+        
+        if not metrics:
+            return {'error': 'No metrics found'}
+        
+        # Фильтр по времени
+        cutoff = datetime.now() - timedelta(hours=window_hours)
+        recent_metrics = [
+            m for m in metrics
+            if datetime.fromisoformat(m['timestamp']) > cutoff
+        ]
+        
+        if not recent_metrics:
+            return {'error': 'No recent metrics'}
+        
+        values = [m['value'] for m in recent_metrics]
         
         return {
-            'status': 'active',
-            'total_snapshots': len(self.snapshots),
-            'total_suggestions': len(self.suggestions),
-            'applied_optimizations': len(self.applied_optimizations),
-            'improvements': {
-                'throughput_change_percent': throughput_improvement,
-                'cache_hit_rate_change': cache_improvement,
-                'memory_change_mb': last_snapshot.memory_usage_mb - first_snapshot.memory_usage_mb
-            },
-            'recent_optimizations': self.applied_optimizations[-10:]
+            'metric_name': metric_name,
+            'count': len(values),
+            'mean': statistics.mean(values),
+            'median': statistics.median(values),
+            'stdev': statistics.stdev(values) if len(values) > 1 else 0,
+            'min': min(values),
+            'max': max(values),
+            'window_hours': window_hours
         }
+    
+    def get_success_rate(self, action: str = None) -> float:
+        """Рассчитать success rate.
+        
+        Args:
+            action: Конкретное действие (если None - общий)
+        
+        Returns:
+            float: Success rate (0.0 - 1.0)
+        """
+        successes = self.knowledge['successful_actions']
+        failures = self.knowledge['failed_actions']
+        
+        if action:
+            successes = [s for s in successes if s['action'] == action]
+            failures = [f for f in failures if f['action'] == action]
+        
+        total = len(successes) + len(failures)
+        if total == 0:
+            return 0.0
+        
+        return len(successes) / total
+    
+    def get_stats(self) -> Dict[str, Any]:
+        """Получить статистику.
+        
+        Returns:
+            Dict: Статистика обучения
+        """
+        return {
+            'agent_id': self.agent_id,
+            'total_experiences': self.knowledge['metadata']['total_experiences'],
+            'success_count': len(self.knowledge['successful_actions']),
+            'failure_count': len(self.knowledge['failed_actions']),
+            'success_rate': self.get_success_rate(),
+            'patterns_learned': len(self.knowledge['learned_patterns']),
+            'improvements_suggested': len(self.knowledge['improvement_suggestions']),
+            'optimizations_applied': self.knowledge['metadata']['optimization_count']
+        }
+    
+    def _load_memory(self):
+        """Загрузить память из файла."""
+        if self.memory_file.exists():
+            try:
+                data = json.loads(self.memory_file.read_text(encoding='utf-8'))
+                self.knowledge.update(data)
+                # Преобразовать performance_metrics обратно в defaultdict
+                self.knowledge['performance_metrics'] = defaultdict(
+                    list,
+                    self.knowledge.get('performance_metrics', {})
+                )
+                logger.info(f"📚 Memory loaded: {self.knowledge['metadata']['total_experiences']} experiences")
+            except Exception as e:
+                logger.error(f"❌ Failed to load memory: {e}")
+    
+    def _save_memory(self):
+        """Сохранить память в файл."""
+        try:
+            self.knowledge['metadata']['last_updated'] = datetime.now().isoformat()
+            # Преобразовать defaultdict в обычный dict для JSON
+            data = dict(self.knowledge)
+            data['performance_metrics'] = dict(data['performance_metrics'])
+            
+            self.memory_file.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False),
+                encoding='utf-8'
+            )
+        except Exception as e:
+            logger.error(f"❌ Failed to save memory: {e}")

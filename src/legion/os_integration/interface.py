@@ -1,6 +1,7 @@
-"""OS Interface - интерфейс взаимодействия с операционной системой.
+"""OS Interface - unified API for OS-level capabilities and system interaction.
 
-Обеспечивает:
+Объединяет:
+- OS Integration компоненты (Workspace, Identity, Audit, Self-Improvement)
 - Безопасный доступ к файловой системе
 - Выполнение системных команд
 - Управление процессами
@@ -9,157 +10,248 @@
 import os
 import subprocess
 import logging
-from typing import Dict, Any, Optional, List
-from pathlib import Path
 import shlex
+from pathlib import Path
+from typing import Optional, Dict, Any
+
+from .workspace import AgentWorkspace
+from .identity import AgentIdentity, Role, Permission
+from .audit import AuditTrail, AuditEventType, SeverityLevel
+from .self_improvement import SelfImprovementEngine
 
 logger = logging.getLogger(__name__)
 
 
 class OSInterface:
-    """Интерфейс взаимодействия с ОС."""
+    """Унифицированный интерфейс для OS-возможностей и системного взаимодействия.
     
-    def __init__(self, workspace_root: Path, allowed_commands: Optional[List[str]] = None):
-        """
-        Инициализация интерфейса.
+    Предоставляет единую точку доступа ко всем компонентам:
+    - Workspace: изолированное файловое окружение
+    - Identity: аутентификация и авторизация
+    - Audit: tamper-evident логирование
+    - Self-improvement: обучение и улучшение
+    - System: безопасное выполнение системных операций
+    
+    Attributes:
+        agent_id: ID агента
+        workspace: AgentWorkspace экземпляр
+        identity: AgentIdentity экземпляр
+        audit: AuditTrail экземпляр
+        improvement: SelfImprovementEngine экземпляр
+    """
+    
+    def __init__(
+        self,
+        agent_id: str,
+        config: Optional[Dict[str, Any]] = None
+    ):
+        """Инициализировать OS Interface.
         
         Args:
-            workspace_root: Корневая директория workspace
-            allowed_commands: Whitelist разрешенных команд
+            agent_id: Уникальный идентификатор агента
+            config: Конфигурация
         """
-        self.workspace_root = workspace_root
-        self.allowed_commands = allowed_commands or ['ls', 'cat', 'echo', 'pwd']
-        logger.info(f"OSInterface initialized with workspace: {workspace_root}")
+        self.agent_id = agent_id
+        self.config = config or {}
+        
+        # Инициализировать компоненты
+        self.workspace = self._init_workspace()
+        self.identity = self._init_identity()
+        self.audit = self._init_audit()
+        self.improvement = self._init_improvement()
+        
+        # Залогировать создание агента
+        self.audit.log_event(
+            AuditEventType.AGENT_CREATED,
+            SeverityLevel.INFO,
+            {'agent_id': agent_id, 'config': self.config}
+        )
+        
+        logger.info(f"="*60)
+        logger.info(f"📦 OS Interface initialized for agent '{agent_id}'")
+        logger.info(f"  📁 Workspace: {self.workspace.workspace_path}")
+        logger.info(f"  🔑 Identity: {len(self.identity.get_all_permissions())} permissions")
+        logger.info(f"  📋 Audit: {len(self.audit.events)} events")
+        logger.info(f"  🧠 Memory: {self.improvement.knowledge['metadata']['total_experiences']} experiences")
+        logger.info(f"="*60)
     
-    def read_file(self, filepath: str) -> Optional[str]:
-        """
-        Прочитать файл.
+    def _init_workspace(self) -> AgentWorkspace:
+        """Инициализировать workspace."""
+        return AgentWorkspace(
+            agent_id=self.agent_id,
+            quota_mb=self.config.get('workspace_quota_mb', 100),
+            auto_cleanup=self.config.get('workspace_auto_cleanup', False)
+        )
+    
+    def _init_identity(self) -> AgentIdentity:
+        """Инициализировать identity."""
+        roles = set()
+        role_str = self.config.get('role', 'worker')
+        if role_str in Role.__members__.values():
+            roles.add(Role(role_str))
+        else:
+            roles.add(Role.WORKER)
+        
+        return AgentIdentity(
+            agent_id=self.agent_id,
+            roles=roles,
+            metadata=self.config.get('identity_metadata', {})
+        )
+    
+    def _init_audit(self) -> AuditTrail:
+        """Инициализировать audit trail."""
+        return AuditTrail(agent_id=self.agent_id)
+    
+    def _init_improvement(self) -> SelfImprovementEngine:
+        """Инициализировать self-improvement engine."""
+        return SelfImprovementEngine(agent_id=self.agent_id)
+    
+    def check_permission(self, permission: Permission) -> bool:
+        """Проверить разрешение и залогировать.
         
         Args:
-            filepath: Путь к файлу
+            permission: Разрешение для проверки
         
         Returns:
-            Optional[str]: Содержимое файла или None
+            bool: True если разрешение есть
         """
-        full_path = self.workspace_root / filepath
+        has_perm = self.identity.has_permission(permission)
         
-        if not self._validate_path(full_path):
-            logger.error(f"Access denied to file: {filepath}")
-            return None
+        if not has_perm:
+            self.audit.log_event(
+                AuditEventType.SECURITY_VIOLATION,
+                SeverityLevel.WARNING,
+                {'permission': permission.value, 'denied': True}
+            )
         
-        try:
-            with open(full_path, 'r', encoding='utf-8') as f:
-                content = f.read()
-            logger.info(f"Read file: {filepath}")
-            return content
-        except Exception as e:
-            logger.error(f"Failed to read file {filepath}: {e}")
-            return None
+        return has_perm
     
-    def write_file(self, filepath: str, content: str) -> bool:
-        """
-        Записать файл.
-        
-        Args:
-            filepath: Путь к файлу
-            content: Содержимое для записи
-        
-        Returns:
-            bool: True если успешно
-        """
-        full_path = self.workspace_root / filepath
-        
-        if not self._validate_path(full_path):
-            logger.error(f"Access denied to file: {filepath}")
-            return False
-        
-        try:
-            full_path.parent.mkdir(parents=True, exist_ok=True)
-            with open(full_path, 'w', encoding='utf-8') as f:
-                f.write(content)
-            logger.info(f"Wrote file: {filepath}")
-            return True
-        except Exception as e:
-            logger.error(f"Failed to write file {filepath}: {e}")
-            return False
+    # === System Operations ===
     
-    def execute_command(self, command: str, timeout: int = 30) -> Dict[str, Any]:
-        """
-        Выполнить системную команду.
+    def execute_command(
+        self,
+        command: str,
+        shell: bool = False,
+        timeout: int = 30
+    ) -> Dict[str, Any]:
+        """Безопасное выполнение системной команды.
         
         Args:
             command: Команда для выполнения
+            shell: Использовать shell
             timeout: Таймаут в секундах
         
         Returns:
-            Dict: Результат выполнения
+            Dict с результатом выполнения
         """
-        # Parse command
-        try:
-            cmd_parts = shlex.split(command)
-        except ValueError as e:
-            return {'success': False, 'error': f"Invalid command: {e}"}
+        if not self.check_permission(Permission.EXECUTE):
+            raise PermissionError("Agent does not have EXECUTE permission")
         
-        # Check if command allowed
-        if cmd_parts[0] not in self.allowed_commands:
-            return {'success': False, 'error': f"Command not allowed: {cmd_parts[0]}"}
+        self.audit.log_event(
+            AuditEventType.MCP_INVOKE,
+            SeverityLevel.INFO,
+            {'command': command, 'shell': shell}
+        )
         
         try:
+            if not shell:
+                command = shlex.split(command)
+            
             result = subprocess.run(
-                cmd_parts,
+                command,
+                shell=shell,
                 capture_output=True,
                 text=True,
-                timeout=timeout,
-                cwd=self.workspace_root
+                timeout=timeout
             )
             
-            logger.info(f"Executed command: {command}")
             return {
-                'success': result.returncode == 0,
+                'status': 'success',
+                'returncode': result.returncode,
                 'stdout': result.stdout,
-                'stderr': result.stderr,
-                'returncode': result.returncode
+                'stderr': result.stderr
             }
-        except subprocess.TimeoutExpired:
-            return {'success': False, 'error': 'Command timeout'}
         except Exception as e:
-            return {'success': False, 'error': str(e)}
+            logger.error(f"Command execution failed: {e}")
+            return {
+                'status': 'error',
+                'error': str(e)
+            }
     
-    def list_files(self, directory: str = '.') -> Optional[List[str]]:
-        """
-        Получить список файлов в директории.
+    def read_file(self, path: Path) -> str:
+        """Безопасное чтение файла.
         
         Args:
-            directory: Директория для просмотра
+            path: Путь к файлу
         
         Returns:
-            Optional[List[str]]: Список файлов или None
+            str: Содержимое файла
         """
-        full_path = self.workspace_root / directory
+        if not self.check_permission(Permission.FILE_SYSTEM):
+            raise PermissionError("Agent does not have FILE_SYSTEM permission")
         
-        if not self._validate_path(full_path):
-            logger.error(f"Access denied to directory: {directory}")
-            return None
+        self.audit.log_event(
+            AuditEventType.FILE_READ,
+            SeverityLevel.INFO,
+            {'path': str(path)}
+        )
         
-        try:
-            files = [str(p.relative_to(full_path)) for p in full_path.iterdir()]
-            return files
-        except Exception as e:
-            logger.error(f"Failed to list directory {directory}: {e}")
-            return None
+        return path.read_text(encoding='utf-8')
     
-    def _validate_path(self, path: Path) -> bool:
-        """
-        Валидировать путь (должен быть внутри workspace).
+    def write_file(self, path: Path, content: str):
+        """Безопасная запись файла.
         
         Args:
-            path: Путь для проверки
+            path: Путь к файлу
+            content: Содержимое
+        """
+        if not self.check_permission(Permission.FILE_SYSTEM):
+            raise PermissionError("Agent does not have FILE_SYSTEM permission")
+        
+        self.audit.log_event(
+            AuditEventType.FILE_WRITE,
+            SeverityLevel.INFO,
+            {'path': str(path), 'size': len(content)}
+        )
+        
+        path.write_text(content, encoding='utf-8')
+    
+    # === Core Methods ===
+    
+    def cleanup(self):
+        """Очистить все ресурсы."""
+        self.audit.log_event(
+            AuditEventType.AGENT_STOPPED,
+            SeverityLevel.INFO,
+            {'reason': 'cleanup'}
+        )
+        
+        if self.workspace.auto_cleanup:
+            self.workspace.cleanup()
+        
+        logger.info(f"🧹 OS Interface cleaned up for '{self.agent_id}'")
+    
+    def get_status(self) -> Dict[str, Any]:
+        """Получить статус всех компонентов.
         
         Returns:
-            bool: True если путь валиден
+            Dict: Полный статус
         """
-        try:
-            path.resolve().relative_to(self.workspace_root.resolve())
-            return True
-        except ValueError:
-            return False
+        return {
+            'agent_id': self.agent_id,
+            'workspace': self.workspace.get_usage_stats(),
+            'identity': self.identity.to_dict(),
+            'audit': {
+                'event_count': len(self.audit.events),
+                'integrity_verified': self.audit.verify_integrity()
+            },
+            'improvement': self.improvement.get_stats()
+        }
+    
+    def __enter__(self):
+        """Context manager вход."""
+        return self
+    
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Context manager выход."""
+        self.cleanup()

@@ -1,25 +1,25 @@
-"""OS Integration Layer для Legion v2.2.
+"""OS Integration Layer для Legion v2.2 - Autonomous System Improvements.
 
-Обеспечивает:
-- Безопасную изоляцию агентов (Workspace)
-- Управление идентификацией (Identity)
-- Интерфейс взаимодействия с ОС (Interface)
-- Аудит и логирование операций (Audit)
-- Самообучение и оптимизацию (SelfImprovement)
+Обеспечивает OS-уровневые возможности для агентов:
+- Workspace: изолированные файловые окружения с квотами
+- Identity: Entra-style аутентификация и RBAC
+- Audit Trail: tamper-evident логирование действий
+- Self-Improvement: долгосрочная память и обучение
+- Interface: унифицированный API для всех компонентов
 """
 
-from .workspace import Workspace, WorkspaceConfig
-from .identity import IdentityManager
-from .interface import OSInterface
-from .audit import AuditLogger
+from .workspace import AgentWorkspace
+from .identity import AgentIdentity
+from .audit import AuditTrail
 from .self_improvement import SelfImprovementEngine
+from .interface import OSInterface
 
 __all__ = [
-    'Workspace',
-    'IdentityManager',
+    'AgentWorkspace',
+    'AgentIdentity',
+    'AuditTrail',
+    'SelfImprovementEngine',
     'OSInterface',
-    'AuditLogger',
-    'SelfImprovementEngine'
 ]
 
 __version__ = '2.2.0'

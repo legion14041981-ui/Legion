@@ -11,8 +11,8 @@
 from .email_agent import EmailAgent
 from .sheets_agent import GoogleSheetsAgent
 from .data_agent import DataAgent
+from .base_agent import LegionAgent, AgentConfig
 from .ci_healer_agent import CIHealerAgent, HealingResult
-from ..base_agent import LegionAgent
 
 __all__ = [
     "EmailAgent",
@@ -21,6 +21,8 @@ __all__ = [
     "CIHealerAgent",
     "HealingResult",
     "LegionAgent",
+    "AgentConfig",
 ]
 
 __version__ = "2.0.0"
+

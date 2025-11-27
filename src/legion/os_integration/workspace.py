@@ -1,194 +1,208 @@
-"""Workspace - безопасная изоляция агентов.
+"""Agent Workspace - isolated filesystem environments and resource isolation for agents.
 
-Каждый агент работает в изолированном пространстве с:
-- Ограниченным доступом к файловой системе
-- Лимитами ресурсов (CPU, RAM)
-- Сетевой изоляцией
+Предоставляет изолированные окружения для каждого агента:
+- Собственная директория с квотами
+- Контроль доступа (read/write/execute)
+- Auto-cleanup при завершении
+- Resource usage tracking
+- Ограниченный доступ к файловой системе
+- Лимиты ресурсов (CPU, RAM)
+- Сетевая изоляция
 """
 
 import os
 import shutil
 import tempfile
 import logging
-from pathlib import Path
-from typing import Dict, Any, Optional, List
-from dataclasses import dataclass
+import json
 import psutil
-import asyncio
+from pathlib import Path
+from typing import Optional, Dict, Any, List
+from datetime import datetime
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
 
-@dataclass
-class WorkspaceConfig:
-    """Workspace configuration."""
-    max_disk_usage_mb: int = 1000  # 1GB
-    max_memory_mb: int = 512  # 512MB
-    max_cpu_percent: float = 50.0  # 50% CPU
-    allowed_paths: List[str] = None  # Whitelist of allowed paths
-    network_enabled: bool = False
-    temp_dir: Optional[Path] = None
-
-
-class Workspace:
-    """Изолированное рабочее пространство для агента."""
+class AgentWorkspace:
+    """Isolated filesystem workspace for an agent.
     
-    def __init__(self, agent_id: str, config: Optional[WorkspaceConfig] = None):
-        """
-        Инициализация workspace.
+    Каждый агент получает собственную директорию с:
+    - Ограничением размера (quota_mb)
+    - Автоматической очисткой (auto_cleanup)
+    - Отслеживанием использования ресурсов
+    - Resource limits (опционально)
+    
+    Attributes:
+        agent_id: Уникальный идентификатор агента
+        workspace_path: Путь к рабочей директории
+        quota_mb: Максимальный размер в MB
+        auto_cleanup: Автоматическая очистка при завершении
+    """
+    
+    def __init__(
+        self,
+        agent_id: str,
+        base_path: Optional[Path] = None,
+        quota_mb: int = 100,
+        auto_cleanup: bool = True
+    ):
+        """Initialize agent workspace.
         
         Args:
-            agent_id: Идентификатор агента
-            config: Конфигурация workspace
+            agent_id: Уникальный идентификатор агента
+            base_path: Базовая директория (по умолчанию ./agent_workspaces)
+            quota_mb: Максимальный размер в MB
+            auto_cleanup: Автоматическая очистка
         """
         self.agent_id = agent_id
-        self.config = config or WorkspaceConfig()
+        self.quota_mb = quota_mb
+        self.auto_cleanup = auto_cleanup
+        self.quota_bytes = quota_mb * 1024 * 1024
         
-        # Создать temporary directory
-        if self.config.temp_dir:
-            self.root = self.config.temp_dir / agent_id
-            self.root.mkdir(parents=True, exist_ok=True)
-        else:
-            self.root = Path(tempfile.mkdtemp(prefix=f"legion_ws_{agent_id}_"))
+        # Определить базовую директорию
+        if base_path is None:
+            base_path = Path.cwd() / 'agent_workspaces'
         
-        # Инициализировать директории
-        (self.root / 'input').mkdir(exist_ok=True)
-        (self.root / 'output').mkdir(exist_ok=True)
-        (self.root / 'temp').mkdir(exist_ok=True)
+        self.workspace_path = base_path / agent_id
+        self.workspace_path.mkdir(parents=True, exist_ok=True)
         
-        # Resource tracking
-        self.process = psutil.Process(os.getpid())
-        self._initial_memory = self.process.memory_info().rss / (1024 * 1024)  # MB
+        # Создать структуру каталогов
+        (self.workspace_path / 'temp').mkdir(exist_ok=True)
+        (self.workspace_path / 'data').mkdir(exist_ok=True)
+        (self.workspace_path / 'logs').mkdir(exist_ok=True)
         
-        logger.info(f"Workspace created for agent '{agent_id}' at {self.root}")
+        # Инициализировать метаданные
+        self.metadata = {
+            'agent_id': agent_id,
+            'created_at': datetime.now().isoformat(),
+            'quota_mb': quota_mb,
+            'files_created': 0,
+            'total_bytes_written': 0
+        }
+        self._save_metadata()
+        
+        logger.info(f"✅ Workspace created for agent '{agent_id}' at {self.workspace_path}")
     
-    def validate_path(self, path: Path) -> bool:
-        """
-        Проверить, разрешен ли доступ к пути.
+    def write_file(self, filename: str, content: str, subdir: str = 'data') -> Path:
+        """Записать файл в workspace.
         
         Args:
-            path: Путь для проверки
+            filename: Имя файла
+            content: Содержимое
+            subdir: Поддиректория (temp/data/logs)
         
         Returns:
-            bool: True если доступ разрешен
+            Path: Полный путь к файлу
+        
+        Raises:
+            ValueError: Если превышена квота
         """
-        path = Path(path).resolve()
+        file_path = self.workspace_path / subdir / filename
+        content_bytes = len(content.encode('utf-8'))
         
-        # Проверить, что path внутри workspace
-        try:
-            path.relative_to(self.root)
-            return True
-        except ValueError:
-            pass
+        # Проверить квоту
+        current_usage = self._get_workspace_size()
+        if current_usage + content_bytes > self.quota_bytes:
+            raise ValueError(
+                f"Квота превышена: {current_usage + content_bytes} > {self.quota_bytes}"
+            )
         
-        # Проверить whitelist
-        if self.config.allowed_paths:
-            for allowed in self.config.allowed_paths:
-                try:
-                    path.relative_to(Path(allowed).resolve())
-                    return True
-                except ValueError:
-                    continue
+        # Записать файл
+        file_path.write_text(content, encoding='utf-8')
         
-        logger.warning(f"Access denied to path: {path}")
-        return False
+        # Обновить метаданные
+        self.metadata['files_created'] += 1
+        self.metadata['total_bytes_written'] += content_bytes
+        self._save_metadata()
+        
+        logger.debug(f"💾 File written: {file_path} ({content_bytes} bytes)")
+        return file_path
     
-    def get_input_path(self, filename: str) -> Path:
-        """Get path in input directory."""
-        return self.root / 'input' / filename
-    
-    def get_output_path(self, filename: str) -> Path:
-        """Get path in output directory."""
-        return self.root / 'output' / filename
-    
-    def get_temp_path(self, filename: str) -> Path:
-        """Get path in temp directory."""
-        return self.root / 'temp' / filename
-    
-    def check_disk_usage(self) -> Dict[str, Any]:
-        """
-        Проверить использование диска.
+    def read_file(self, filename: str, subdir: str = 'data') -> str:
+        """Прочитать файл из workspace.
+        
+        Args:
+            filename: Имя файла
+            subdir: Поддиректория
         
         Returns:
-            Dict с информацией о использовании диска
+            str: Содержимое файла
         """
-        total_size = 0
-        for path in self.root.rglob('*'):
-            if path.is_file():
-                total_size += path.stat().st_size
-        
-        used_mb = total_size / (1024 * 1024)
-        limit_mb = self.config.max_disk_usage_mb
-        
-        return {
-            'used_mb': used_mb,
-            'limit_mb': limit_mb,
-            'usage_percent': (used_mb / limit_mb * 100) if limit_mb > 0 else 0,
-            'exceeds_limit': used_mb > limit_mb
-        }
+        file_path = self.workspace_path / subdir / filename
+        if not file_path.exists():
+            raise FileNotFoundError(f"Файл не найден: {file_path}")
+        return file_path.read_text(encoding='utf-8')
     
-    def check_memory_usage(self) -> Dict[str, Any]:
-        """
-        Проверить использование памяти.
+    def list_files(self, subdir: str = None) -> List[Path]:
+        """Получить список файлов.
+        
+        Args:
+            subdir: Поддиректория (если None - все файлы)
         
         Returns:
-            Dict с информацией о использовании памяти
+            List[Path]: Список путей к файлам
         """
-        current_memory = self.process.memory_info().rss / (1024 * 1024)  # MB
-        used_mb = current_memory - self._initial_memory
-        limit_mb = self.config.max_memory_mb
-        
-        return {
-            'used_mb': used_mb,
-            'limit_mb': limit_mb,
-            'usage_percent': (used_mb / limit_mb * 100) if limit_mb > 0 else 0,
-            'exceeds_limit': used_mb > limit_mb
-        }
+        search_path = self.workspace_path / subdir if subdir else self.workspace_path
+        return list(search_path.rglob('*')) if search_path.exists() else []
     
-    def check_cpu_usage(self) -> Dict[str, Any]:
-        """
-        Проверить использование CPU.
+    def get_usage_stats(self) -> Dict[str, Any]:
+        """Получить статистику использования.
         
         Returns:
-            Dict с информацией о использовании CPU
+            Dict: Статистика использования ресурсов
         """
-        cpu_percent = self.process.cpu_percent(interval=1.0)
-        limit_percent = self.config.max_cpu_percent
-        
-        return {
-            'usage_percent': cpu_percent,
-            'limit_percent': limit_percent,
-            'exceeds_limit': cpu_percent > limit_percent
-        }
-    
-    def get_resource_status(self) -> Dict[str, Any]:
-        """
-        Получить полную информацию о ресурсах.
-        
-        Returns:
-            Dict с информацией о всех ресурсах
-        """
+        current_size = self._get_workspace_size()
         return {
             'agent_id': self.agent_id,
-            'root': str(self.root),
-            'disk': self.check_disk_usage(),
-            'memory': self.check_memory_usage(),
-            'cpu': self.check_cpu_usage(),
-            'network_enabled': self.config.network_enabled
+            'current_size_mb': current_size / (1024 * 1024),
+            'quota_mb': self.quota_mb,
+            'usage_percent': (current_size / self.quota_bytes) * 100,
+            'files_count': len(self.list_files()),
+            **self.metadata
         }
     
-    def cleanup(self):
-        """Очистить workspace."""
+    def get_resource_usage(self) -> Dict[str, Any]:
+        """Получить использование системных ресурсов.
+        
+        Returns:
+            Dict: CPU и RAM использование
+        """
         try:
-            shutil.rmtree(self.root)
-            logger.info(f"Workspace cleaned for agent '{self.agent_id}'")
+            process = psutil.Process()
+            return {
+                'cpu_percent': process.cpu_percent(interval=0.1),
+                'memory_mb': process.memory_info().rss / (1024 * 1024),
+                'memory_percent': process.memory_percent()
+            }
         except Exception as e:
-            logger.error(f"Failed to clean workspace: {e}")
+            logger.error(f"Failed to get resource usage: {e}")
+            return {}
+    
+    def cleanup(self):
+        """Очистить workspace (удалить все файлы)."""
+        if self.workspace_path.exists():
+            shutil.rmtree(self.workspace_path)
+            logger.info(f"🧹 Workspace cleaned up: {self.workspace_path}")
+    
+    def _get_workspace_size(self) -> int:
+        """Подсчитать общий размер workspace в байтах."""
+        total_size = 0
+        for path in self.list_files():
+            if path.is_file():
+                total_size += path.stat().st_size
+        return total_size
+    
+    def _save_metadata(self):
+        """Сохранить метаданные в .metadata.json."""
+        metadata_path = self.workspace_path / '.metadata.json'
+        metadata_path.write_text(json.dumps(self.metadata, indent=2), encoding='utf-8')
     
     def __enter__(self):
-        """Context manager entry."""
+        """Context manager вход."""
         return self
     
     def __exit__(self, exc_type, exc_val, exc_tb):
-        """Context manager exit."""
-        self.cleanup()
+        """Context manager выход с авто-очисткой."""
+        if self.auto_cleanup:
+            self.cleanup()

@@ -108,7 +108,7 @@ jobs:
         run: |
           bandit -r src/ -f json -o bandit-report.json || true
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v5
         with:
           name: security-reports
           path: |

@@ -1,235 +1,70 @@
 version: '3.9'
 
 services:
-<<<<<<< HEAD
   # Legion AI System
-=======
-  # Main Legion MCP Server
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
   legion:
     build:
       context: .
       dockerfile: Dockerfile
-<<<<<<< HEAD
     container_name: legion-ai-system
     restart: unless-stopped
     ports:
       - "8001:8001"  # MCP Server
       - "9090:9090"  # Prometheus metrics
-    environment:
-      # Database
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
-      - DATABASE_URL=postgresql://legion:legion@postgres:5432/legion_db
-      
-      # AI Integration
-      - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - OPENAI_MODEL=gpt-4-turbo
-      
-      # MCP Server
-      - MCP_ENABLED=true
-      - MCP_SERVER_HOST=0.0.0.0
-      - MCP_SERVER_PORT=8001
-      
-      # Browser Automation
-      - PLAYWRIGHT_BROWSER=chromium
-      - PLAYWRIGHT_HEADLESS=true
-      
-      # Orchestration
-      - ORCHESTRATION_PATTERN=hierarchical
-      
-      # Performance
-      - HOT_CACHE_SIZE=128
-      - NUM_WORKERS=4
-      
-      # Monitoring
-      - PROMETHEUS_ENABLED=true
-      - PROMETHEUS_PORT=9090
-      - LOG_LEVEL=INFO
     volumes:
       - legion-data:/data
-      - ./src:/app/src:ro  # Read-only for security
-    networks:
-      - legion-network
-    depends_on:
-      - postgres
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
-
-  # PostgreSQL (for local development only)
-  postgres:
-    image: postgres:16-alpine
-    container_name: legion-postgres
-    restart: unless-stopped
+      - ./logs:/app/logs
     environment:
-      - POSTGRES_USER=legion
-      - POSTGRES_PASSWORD=legion
-      - POSTGRES_DB=legion_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - legion-network
-=======
-    container_name: legion-mcp
-    ports:
-      - "8001:8001"
-      - "9090:9090"
-    environment:
-      - PYTHONUNBUFFERED=1
       - LOG_LEVEL=INFO
-      - MCP_HOST=0.0.0.0
-      - MCP_PORT=8001
-      - DATABASE_URL=postgresql://legion:legionpass@postgres:5432/legion
-    depends_on:
-      postgres:
-        condition: service_healthy
-    volumes:
-      - ./src:/app/src
-      - ./examples:/app/examples
+      - PYTHONUNBUFFERED=1
+      - WORKSPACE_ROOT=/data/workspaces
     networks:
-      - legion-net
+      - legion-network
     healthcheck:
       test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
-    restart: unless-stopped
+      start_period: 5s
 
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    container_name: legion-postgres
-    environment:
-      - POSTGRES_USER=legion
-      - POSTGRES_PASSWORD=legionpass
-      - POSTGRES_DB=legion
-      - POSTGRES_INITDB_ARGS=-c shared_buffers=256MB -c max_connections=200
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+  # Redis for caching and message queue
+  redis:
+    image: redis:7-alpine
+    container_name: legion-redis
+    restart: unless-stopped
     ports:
-      - "5432:5432"
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
     networks:
-      - legion-net
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+      - legion-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U legion"]
+      test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
-      retries: 5
-<<<<<<< HEAD
+      retries: 3
 
-  # Prometheus (metrics collection)
+  # Prometheus for metrics
   prometheus:
     image: prom/prometheus:latest
     container_name: legion-prometheus
     restart: unless-stopped
-=======
-    restart: unless-stopped
-
-  # Prometheus Metrics
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: legion-prometheus
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
     ports:
       - "9091:9090"
     volumes:
       - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
-<<<<<<< HEAD
       - prometheus-data:/prometheus
+    networks:
+      - legion-network
     command:
       - '--config.file=/etc/prometheus/prometheus.yml'
       - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
-      - '--web.console.templates=/usr/share/prometheus/consoles'
-    networks:
-      - legion-network
-    depends_on:
-      - legion
 
-  # Grafana (visualization)
-  grafana:
-    image: grafana/grafana:latest
-    container_name: legion-grafana
-    restart: unless-stopped
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=legion
-      - GF_INSTALL_PLUGINS=
-    volumes:
-      - grafana-data:/var/lib/grafana
-      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ./grafana/datasources:/etc/grafana/provisioning/datasources:ro
-    networks:
-      - legion-network
-    depends_on:
-      - prometheus
+volumes:
+  legion-data:
+  redis-data:
+  prometheus-data:
 
 networks:
   legion-network:
     driver: bridge
-    ipam:
-      config:
-        - subnet: 172.28.0.0/16
-
-volumes:
-  legion-data:
-    driver: local
-  postgres-data:
-    driver: local
-  prometheus-data:
-    driver: local
-  grafana-data:
-    driver: local
-=======
-      - prometheus_data:/prometheus
-    command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-    networks:
-      - legion-net
-    restart: unless-stopped
-    depends_on:
-      - legion
-
-  # Grafana Dashboards
-  grafana:
-    image: grafana/grafana:latest
-    container_name: legion-grafana
-    ports:
-      - "3000:3000"
-    environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_INSTALL_PLUGINS=grafana-piechart-panel
-    volumes:
-      - grafana_data:/var/lib/grafana
-    networks:
-      - legion-net
-    restart: unless-stopped
-    depends_on:
-      - prometheus
-
-volumes:
-  postgres_data:
-    driver: local
-  prometheus_data:
-    driver: local
-  grafana_data:
-    driver: local
-
-networks:
-  legion-net:
-    driver: bridge
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

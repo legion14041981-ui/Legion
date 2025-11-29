@@ -11,6 +11,7 @@
 
 import logging
 import time
+import asyncio
 from typing import Dict, Any, Optional
 from prometheus_client import (
     Counter, Histogram, Gauge, Info, Summary,

@@ -4,7 +4,7 @@
 # ==============================================
 
 # Stage 1: Builder - Install dependencies and build
-FROM python:3.11-slim as builder
+FROM python:3.14-slim as builder
 
 LABEL maintainer="legion14041981@gmail.com"
 LABEL version="2.0.0"
@@ -37,7 +37,7 @@ COPY pyproject.toml .
 RUN pip install --no-cache-dir -e .
 
 # Stage 2: Runtime - Minimal production image
-FROM python:3.11-slim as runtime
+FROM python:3.14-slim as runtime
 
 # Create non-root user for security
 RUN groupadd -r legion && useradd -r -g legion legion

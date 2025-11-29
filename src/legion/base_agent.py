@@ -119,9 +119,4 @@ class LegionAgent(ABC):
         return f"<LegionAgent {self.agent_id} (active={self.is_active})>"
 
 
-# Legacy imports for backward compatibility
-from .agents.email_agent import EmailAgent
-from .agents.sheets_agent import GoogleSheetsAgent
-from .agents.data_agent import DataAgent
-
-__all__ = ['LegionAgent', 'EmailAgent', 'GoogleSheetsAgent', 'DataAgent']
+__all__ = ['LegionAgent']

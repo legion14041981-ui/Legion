@@ -17,37 +17,31 @@ with open('requirements.txt') as f:
     requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
 setup(
-    name='legion-ai',
+    name='legion',
     version='2.0.0',
-    description='Мультиагентный AI-фреймворк с браузерной автоматизацией и Model Context Protocol',
+    description='Multi-agent AI orchestration framework',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Legion Team',
-    author_email='legion14041981@gmail.com',
+    author_email='legion@example.com',
     url='https://github.com/legion14041981-ui/Legion',
-    project_urls={
-        'Documentation': 'https://www.notion.so/2ac65511388d815fa690c20766ed1206',
-        'Source': 'https://github.com/legion14041981-ui/Legion',
-        'Tracker': 'https://github.com/legion14041981-ui/Legion/issues',
-    },
     packages=find_packages(where='src'),
     package_dir={'': 'src'},
-    include_package_data=True,
     python_requires='>=3.9',
     install_requires=requirements,
     extras_require={
         'dev': [
-            'pytest>=7.4.0',
+            'pytest>=7.0.0',
             'pytest-asyncio>=0.21.0',
-            'pytest-cov>=4.1.0',
-            'pytest-playwright>=0.4.0',
+            'pytest-cov>=4.0.0',
             'black>=23.0.0',
-            'pylint>=3.0.0',
-            'mypy>=1.7.0',
+            'flake8>=6.0.0',
+            'mypy>=1.0.0',
+            'pre-commit>=3.0.0',
         ],
         'docs': [
-            'sphinx>=7.0.0',
-            'sphinx-rtd-theme>=1.3.0',
+            'sphinx>=6.0.0',
+            'sphinx-rtd-theme>=1.0.0',
         ],
     },
     entry_points={
@@ -69,8 +63,4 @@ setup(
     ],
     keywords='ai multi-agent automation mcp playwright orchestration',
     license='MIT',
-<<<<<<< HEAD
 )
-=======
-)
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

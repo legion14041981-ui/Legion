@@ -1,110 +1,43 @@
 version: 2
 updates:
-<<<<<<< HEAD
   # Python dependencies
-=======
-  # Enable version updates for Python dependencies
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
   - package-ecosystem: "pip"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-<<<<<<< HEAD
       time: "09:00"
       timezone: "Europe/Moscow"
     open-pull-requests-limit: 10
-=======
-      time: "03:00"
-    open-pull-requests-limit: 5
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
-    reviewers:
-      - "legion14041981-ui"
     labels:
       - "dependencies"
-<<<<<<< HEAD
-      - "security"
-      - "automated"
+      - "python"
     commit-message:
       prefix: "chore(deps)"
-      include: "scope"
-    # Group patch updates together
-    groups:
-      patch-updates:
-        patterns:
-          - "*"
-        update-types:
-          - "patch"
-    # Allow updates for all dependencies
-    allow:
-      - dependency-type: "all"
-    # Security updates always get separate PRs
-    ignore:
-      - dependency-name: "*"
-        update-types: ["version-update:semver-major"]
-    # Rebase strategy for conflict resolution
-    rebase-strategy: "auto"
+    reviewers:
+      - "legion14041981-ui"
 
-  # GitHub Actions updates
-=======
-      - "automated"
-    commit-message:
-      prefix: "chore(deps):"
-      prefix-development: "chore(deps-dev):"
-      include: "scope"
-    pull-request-branch-name:
-      separator: "/"
-    allow:
-      - dependency-type: "direct"
-      - dependency-type: "indirect"
-    ignore:
-      # Ignore major version updates for stable libraries
-      - dependency-name: "sqlalchemy"
-        update-types: ["version-update:semver-major"]
-    versioning-strategy: "auto"
-
-  # Enable version updates for GitHub Actions
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+  # GitHub Actions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
       interval: "weekly"
       day: "monday"
-<<<<<<< HEAD
-      time: "09:00"
-      timezone: "Europe/Moscow"
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "ci/cd"
-      - "automated"
+      - "github-actions"
     commit-message:
-      prefix: "chore(ci)"
-      include: "scope"
-    reviewers:
-      - "legion14041981-ui"
-=======
-      time: "04:00"
-    reviewers:
-      - "legion14041981-ui"
-    labels:
-      - "ci"
-      - "automated"
+      prefix: "chore(deps)"
 
-  # Enable security updates (runs daily, separate from scheduled updates)
-  - package-ecosystem: "pip"
+  # Docker
+  - package-ecosystem: "docker"
     directory: "/"
     schedule:
-      interval: "daily"
-    security-updates-only: true
-    reviewers:
-      - "legion14041981-ui"
+      interval: "weekly"
+    open-pull-requests-limit: 5
     labels:
-      - "security"
-      - "automated"
-    pull-request-branch-name:
-      separator: "/"
-      prefix: "security"
+      - "dependencies"
+      - "docker"
     commit-message:
-      prefix: "security:"
-      include: "scope"
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+      prefix: "chore(deps)"

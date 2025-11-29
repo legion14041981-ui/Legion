@@ -33,9 +33,8 @@ class TestAuditLogger:
         agent1_events = audit_logger.get_events(agent_id='agent_1')
         assert len(agent1_events) == 2
         
-        error_events = audit_logger.get_events(level=AuditLevel.ERROR)
-        assert len(error_events) == 1
-    
+        error_events = audit_logger.get_events(level=SeverityLevel.ERROR)
+        assert len(error_events) == 1    
     def test_compliance_report(self, audit_logger):
         """Тест compliance отчета."""
         audit_logger.log_info('agent_1', 'op1')

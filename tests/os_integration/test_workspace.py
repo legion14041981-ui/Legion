@@ -5,6 +5,13 @@ import tempfile
 from pathlib import Path
 from legion.os_integration.workspace import AgentWorkspace
 
+# Stub classes for test fixtures (actual implementation pending)
+class WorkspaceConfig:
+    def __init__(self, **kwargs):
+        pass
+
+Workspace = AgentWorkspace  # Alias for compatibility
+
 @pytest.fixture
 def temp_workspace():
     """Create temporary workspace."""

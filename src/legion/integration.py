@@ -37,258 +37,40 @@ except ImportError:
     PlanningAgent = None
     ExecutionAgent = None
     MonitoringAgent = None
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 
 logger = logging.getLogger(__name__)
 
 
 class LegionAISystem:
-<<<<<<< HEAD
     """Integrated Legion AI System.
     
-    Combines all AI enhancements into a unified system:
-    - MCP protocol for tool integration
-    - AI-powered script generation
-    - Browser automation with Playwright
-    - Multi-agent orchestration
-    - Self-healing capabilities
-=======
-    """Integrated Legion AI System v2.0.
-    
-    Note: This is a staged merge. Full functionality requires:
-    - MCP modules
-    - AI script generator
-    - Browser automation agent
-    - Multi-agent orchestration
-    
-    These will be added in subsequent commits.
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+    Combines all Legion components into a unified interface.
     """
     
     def __init__(self, config: Optional[Dict] = None):
-        """Initialize Legion AI System.
+        """Initialize the Legion AI System.
         
         Args:
-            config: System configuration
+            config: Optional configuration dictionary
         """
         self.config = config or {}
-<<<<<<< HEAD
-        
-        # Core components
         self.core = LegionCore()
-        
-        # AI components
-        self.script_generator = None
-        if os.getenv('OPENAI_API_KEY'):
-            self.script_generator = ScriptGenerator()
-            logger.info("✓ AI Script Generator initialized")
-        else:
-            logger.warning("⚠ OPENAI_API_KEY not set, script generation disabled")
-        
-        # Browser automation
-        self.browser_agent = None
-        try:
-            self.browser_agent = PlaywrightBrowserAgent(
-                agent_id='main-browser',
-                config={
-                    'browser': os.getenv('PLAYWRIGHT_BROWSER', 'chromium'),
-                    'headless': os.getenv('PLAYWRIGHT_HEADLESS', 'true') == 'true'
-                }
-            )
-            logger.info("✓ Browser Agent initialized")
-        except ImportError:
-            logger.warning("⚠ Playwright not installed, browser automation disabled")
-        
-        # MCP components
         self.mcp_server = None
-        self.tool_registry = None
-        self.code_executor = None
-        
-        if self.config.get('mcp_enabled', os.getenv('MCP_ENABLED', 'true') == 'true'):
-            self._initialize_mcp()
-        
-        # Orchestration
+        self.script_generator = None
+        self.browser_agent = None
         self.orchestrator = None
-        if self.config.get('orchestration_enabled', True):
-            self._initialize_orchestration()
         
-        logger.info("=" * 60)
-        logger.info("Legion AI System initialized successfully")
-        logger.info("=" * 60)
-    
-    def _initialize_mcp(self):
-        """Initialize MCP components."""
-        self.mcp_server = LegionMCPServer({
-            'name': 'legion-ai-server',
-            'version': '1.0.0'
-        })
-        
-        self.tool_registry = LegionToolRegistry()
-        self.code_executor = CodeExecutionEngine(self.tool_registry)
-        
-        # Register browser tools
-        if self.browser_agent:
-            self._register_browser_tools()
-        
-        logger.info("✓ MCP Server initialized")
-    
-    def _register_browser_tools(self):
-        """Register browser automation tools with MCP."""
-        async def browser_navigate(url: str, wait_until: str = 'load'):
-            return await self.browser_agent.execute({
-                'action': 'navigate',
-                'params': {'url': url, 'wait_until': wait_until}
-            })
-        
-        async def browser_click(selector: str):
-            return await self.browser_agent.execute({
-                'action': 'click',
-                'params': {'selector': selector}
-            })
-        
-        async def browser_screenshot(path: str = None):
-            return await self.browser_agent.execute({
-                'action': 'screenshot',
-                'params': {'path': path}
-            })
-        
-        async def browser_extract(selector: str = None, attribute: str = 'textContent'):
-            return await self.browser_agent.execute({
-                'action': 'extract',
-                'params': {'selector': selector, 'attribute': attribute}
-            })
-        
-        # Register tools
-        self.tool_registry.register(
-            'browser_navigate',
-            browser_navigate,
-            'Navigate to URL',
-            category='browser',
-            examples=['await tools.execute("browser_navigate", url="https://example.com")']
-        )
-        
-        self.tool_registry.register(
-            'browser_click',
-            browser_click,
-            'Click element by selector',
-            category='browser',
-            examples=['await tools.execute("browser_click", selector="#submit-btn")']
-        )
-        
-        self.tool_registry.register(
-            'browser_screenshot',
-            browser_screenshot,
-            'Take screenshot',
-            category='browser'
-        )
-        
-        self.tool_registry.register(
-            'browser_extract',
-            browser_extract,
-            'Extract data from page',
-            category='browser'
-        )
-        
-        logger.info("✓ Registered 4 browser tools")
-    
-    def _initialize_orchestration(self):
-        """Initialize multi-agent orchestration."""
-        try:
+        # Initialize optional components
+        if LegionMCPServer:
+            self.mcp_server = LegionMCPServer()
+        if ScriptGenerator:
+            self.script_generator = ScriptGenerator()
+        if PlaywrightBrowserAgent:
+            self.browser_agent = PlaywrightBrowserAgent()
+        if MultiAgentOrchestrator:
             self.orchestrator = MultiAgentOrchestrator()
-            
-            # Create agents
-            planning_agent = PlanningAgent(self.script_generator)
-            execution_agent = ExecutionAgent(self.browser_agent) if self.browser_agent else None
-            monitoring_agent = MonitoringAgent(self.script_generator)
-            
-            # Register agents
-            self.orchestrator.register_agent('planning', planning_agent, 'planning')
-            if execution_agent:
-                self.orchestrator.register_agent('execution', execution_agent, 'execution')
-            self.orchestrator.register_agent('monitoring', monitoring_agent, 'monitoring')
-            
-            # Build workflow
-            pattern = os.getenv('ORCHESTRATION_PATTERN', 'hierarchical')
-            if pattern == 'sequential' and execution_agent:
-                self.orchestrator.build_sequential_workflow(['planning', 'execution'])
-            elif pattern == 'hierarchical' and execution_agent:
-                self.orchestrator.build_hierarchical_workflow('planning', ['execution'])
-            
-            logger.info(f"✓ Orchestration initialized (pattern: {pattern})")
-        except ImportError:
-            logger.warning("⚠ LangGraph not installed, orchestration disabled")
-    
-    async def execute_task(self, description: str, context: Optional[Dict] = None) -> Dict[str, Any]:
-        """Execute a task using AI automation.
         
-        Args:
-            description: Natural language task description
-            context: Optional context (URL, etc.)
-            
-        Returns:
-            Task execution results
-        """
-        logger.info(f"\n{'='*60}")
-        logger.info(f"Executing task: {description}")
-        logger.info(f"{'='*60}\n")
-        
-        task = {
-            'description': description,
-            'context': context or {},
-            'timestamp': asyncio.get_event_loop().time()
-        }
-        
-        # Use orchestrator if available
-        if self.orchestrator:
-            try:
-                result = await self.orchestrator.execute(task)
-                logger.info("✓ Task completed via orchestration")
-                return result
-            except Exception as e:
-                logger.error(f"Orchestration failed: {e}")
-        
-        # Fallback: direct execution
-        if self.script_generator and self.browser_agent:
-            # Generate script
-            script_result = await self.script_generator.generate_playwright_script(
-                description,
-                context
-            )
-            
-            if script_result.get('success'):
-                # Execute generated script
-                # Note: In production, use code_executor for sandboxed execution
-                logger.info("✓ Script generated successfully")
-                return {
-                    'success': True,
-                    'script': script_result.get('code'),
-                    'method': 'direct_generation'
-                }
-        
-        return {
-            'success': False,
-            'error': 'No execution method available'
-        }
-    
-    async def start_mcp_server(self):
-        """Start MCP server."""
-        if self.mcp_server:
-            host = os.getenv('MCP_SERVER_HOST', '0.0.0.0')
-            port = int(os.getenv('MCP_SERVER_PORT', '8001'))
-            await self.mcp_server.start(host, port)
-    
-    async def cleanup(self):
-        """Cleanup resources."""
-        if self.browser_agent:
-            await self.browser_agent.cleanup()
-        if self.mcp_server:
-            await self.mcp_server.stop()
-        logger.info("Legion AI System cleaned up")
-=======
-        self.core = LegionCore()
-        
-        logger.info("Legion AI System v2.0 initialized (partial - staged merge in progress)")
-        logger.warning("Some features disabled - full merge pending")
+        logger.info("Legion AI System v2.0 initialized")
     
     async def execute_task(self, description: str, context: Optional[Dict] = None) -> Dict[str, Any]:
         """Execute a task.
@@ -301,12 +83,89 @@ class LegionAISystem:
             Task results
         """
         logger.info(f"Task: {description}")
+        
+        # Use orchestrator if available
+        if self.orchestrator:
+            return await self.orchestrator.execute(description, context)
+        
+        # Fallback to core execution
+        result = await self.core.execute(description, context)
         return {
-            'success': False,
-            'error': 'Full AI System pending merge completion',
+            'success': result.get('success', False),
+            'result': result,
             'description': description
-
-
+        }
+    
+    async def generate_script(self, prompt: str, language: str = "python") -> Dict[str, Any]:
+        """Generate a script using AI.
+        
+        Args:
+            prompt: Script generation prompt
+            language: Target programming language
+            
+        Returns:
+            Generated script and metadata
+        """
+        if not self.script_generator:
+            return {
+                'success': False,
+                'error': 'Script generator not available'
+            }
+        
+        return await self.script_generator.generate(prompt, language)
+    
+    async def browse(self, url: str, actions: Optional[list] = None) -> Dict[str, Any]:
+        """Perform browser automation.
+        
+        Args:
+            url: URL to navigate to
+            actions: Optional list of actions to perform
+            
+        Returns:
+            Browser session results
+        """
+        if not self.browser_agent:
+            return {
+                'success': False,
+                'error': 'Browser agent not available'
+            }
+        
+        await self.browser_agent.navigate(url)
+        if actions:
+            for action in actions:
+                await self.browser_agent.execute_action(action)
+        
+        return {
+            'success': True,
+            'url': url,
+            'actions_performed': len(actions) if actions else 0
+        }
+    
+    async def start_mcp_server(self):
+        """Start MCP server."""
+        if self.mcp_server:
+            host = os.getenv('MCP_SERVER_HOST', '0.0.0.0')
+            port = int(os.getenv('MCP_SERVER_PORT', '8001'))
+            await self.mcp_server.start(host, port)
+            logger.info(f"MCP server started on {host}:{port}")
+    
     async def cleanup(self):
         """Cleanup resources."""
-        logger.info("Cleanup complete")
+        if self.browser_agent:
+            await self.browser_agent.cleanup()
+        if self.mcp_server:
+            await self.mcp_server.stop()
+        logger.info("Legion AI System cleaned up")
+
+
+# Convenience function for quick system access
+def create_legion_system(config: Optional[Dict] = None) -> LegionAISystem:
+    """Create a Legion AI System instance.
+    
+    Args:
+        config: Optional configuration
+        
+    Returns:
+        LegionAISystem instance
+    """
+    return LegionAISystem(config)

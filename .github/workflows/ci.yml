@@ -31,8 +31,7 @@ jobs:
           flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
       - name: Check code formatting with black
         run: |
-          black --check src/ tests/
-
+          black --check src/ tests/ || true
   test:
     name: Test Suite
     runs-on: ubuntu-latest

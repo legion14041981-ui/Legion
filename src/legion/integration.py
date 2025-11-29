@@ -305,9 +305,8 @@ class LegionAISystem:
             'success': False,
             'error': 'Full AI System pending merge completion',
             'description': description
-        }
-    
+
+
     async def cleanup(self):
         """Cleanup resources."""
         logger.info("Cleanup complete")
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535

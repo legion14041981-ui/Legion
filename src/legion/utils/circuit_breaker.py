@@ -10,9 +10,16 @@ from datetime import datetime, timedelta
 from typing import Callable, Any, Optional
 from functools import wraps
 import asyncio
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
+
+class CircuitBreakerState(Enum):
+    """Circuit breaker states."""
+    CLOSED = "closed"
+    OPEN = "open"
+    HALF_OPEN = "half_open"
 
 class CircuitBreakerOpenError(Exception):
     """Raised when circuit breaker is open."""

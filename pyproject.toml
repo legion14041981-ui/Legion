@@ -276,7 +276,6 @@ ensure_newline_before_comments = true
 # ======================
 [tool.setuptools]
 packages = ["legion"]
-package-dir = {"": "src"}
-
+package-dir."" = "src"
 [tool.setuptools.package-data]
 legion = ["py.typed"]

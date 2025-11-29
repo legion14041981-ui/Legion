@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 .PHONY: help install install-dev test lint format clean docker-build docker-run deploy
 
 # Default target

@@ -2,7 +2,7 @@
 
 Спасибо за интерес к Legion! Мы рады любому вкладу.
 
-## 📄 Code of Conduct
+## 📜 Code of Conduct
 
 Участвуя в проекте, вы принимаете наш Кодекс поведения:
 
@@ -12,204 +12,67 @@
 
 ## 🚀 How to Contribute
 
-<<<<<<< HEAD
-### Reporting Bugs
-
-Если вы нашли ошибку:
-
-1. Проверьте [Issues](https://github.com/legion14041981-ui/Legion/issues)
-2. Создайте новый issue с лейблом `bug`
-3. Укажите:
-   - Описание проблемы
-   - Шаги воспроизведения
-   - Ожидаемое поведение
-   - Фактическое поведение
-   - Версию Python, OS
-
-### Suggesting Features
-
-1. Проверьте [Issues](https://github.com/legion14041981-ui/Legion/issues)
-2. Создайте issue с лейблом `enhancement`
-3. Опишите:
-   - Use case
-   - Предлагаемое решение
-   - Альтернативы
-
-### Pull Requests
-
-#### Процесс
-
-1. **Fork репозитория**
+### 1. Fork the Repository
 
 ```bash
-git clone https://github.com/YOUR-USERNAME/Legion.git
+git clone https://github.com/YOUR_USERNAME/Legion.git
 cd Legion
-git remote add upstream https://github.com/legion14041981-ui/Legion.git
 ```
 
-2. **Создайте ветку**
+### 2. Create a Branch
 
 ```bash
-git checkout -b feature/amazing-feature
-# или
-git checkout -b fix/critical-bug
+git checkout -b feature/your-feature-name
 ```
 
-3. **Установите зависимости**
+### 3. Make Changes
+
+- Follow the code style guidelines
+- Add tests for new functionality
+- Update documentation as needed
+
+### 4. Run Tests
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate     # Windows
-pip install -r requirements.txt
-pip install -e .[dev]
-playwright install
+make test
+make lint
 ```
 
-4. **Внесите изменения**
+### 5. Submit a Pull Request
 
-- Следуйте [PEP 8](https://pep8.org/)
-- Используйте type hints
-- Добавьте docstrings
-- Напишите тесты
+- Push your changes
+- Create a PR with a clear description
+- Link any related issues
 
-5. **Запустите тесты**
+## 📋 Pull Request Guidelines
 
-```bash
-pytest tests/ -v
-black src/ tests/
-flake8 src/ tests/
-mypy src/
-```
+- Keep PRs focused and atomic
+- Write clear commit messages
+- Include tests for new features
+- Update documentation
 
-6. **Commit изменения**
+## 🐛 Bug Reports
 
-```bash
-git add .
-git commit -m "feat: add amazing feature"
-```
+Please include:
+- Python version
+- OS information
+- Steps to reproduce
+- Expected vs actual behavior
 
-Используйте [Conventional Commits](https://www.conventionalcommits.org/):
+## 💡 Feature Requests
 
-- `feat:` - новая функциональность
-- `fix:` - исправление ошибки
-- `docs:` - документация
-- `test:` - тесты
-- `refactor:` - рефакторинг
-- `chore:` - обслуживание
+We welcome ideas! Please:
+- Check existing issues first
+- Describe the use case
+- Explain the proposed solution
 
-7. **Push изменения**
+## 📚 Documentation
 
-```bash
-git push origin feature/amazing-feature
-```
+Help improve docs by:
+- Fixing typos
+- Adding examples
+- Clarifying explanations
 
-8. **Создайте Pull Request**
+## 🙏 Thank You!
 
-- Опишите изменения
-- Ссылка на связанные issues
-- Добавьте скриншоты (если нужно)
-
-## 📑 Development Guidelines
-
-### Code Style
-
-```python
-# ✅ Good
-def calculate_sum(numbers: list[int]) -> int:
-    """
-    Calculate sum of numbers.
-    
-    Args:
-        numbers: List of integers
-        
-    Returns:
-        Sum of all numbers
-    """
-    return sum(numbers)
-
-# ❌ Bad
-def calc(n):
-    return sum(n)
-```
-
-### Testing
-
-- Пишите unit tests для нового кода
-- Integration tests для API
-- Используйте pytest markers:
-
-```python
-import pytest
-
-@pytest.mark.unit
-def test_basic_function():
-    assert True
-
-@pytest.mark.integration
-@pytest.mark.playwright
-async def test_browser_automation():
-    # ...
-```
-
-### Documentation
-
-- Docstrings для всех публичных функций/классов
-- Обновляйте README.md и docs/
-- Примеры в examples/
-
-### Commit Message Format
-
-```
-<type>(<scope>): <subject>
-
-<body>
-
-<footer>
-```
-
-Пример:
-
-```
-feat(mcp): add tool registry auto-discovery
-
-Implemented automatic discovery of MCP tools from
-registered plugins. Supports both sync and async handlers.
-
-Closes #123
-```
-
-## 📚 Project Structure
-
-```
-Legion/
-├── src/legion/          # Основной код
-├── tests/              # Тесты
-├── docs/               # Документация
-├── examples/           # Примеры
-└── .github/workflows/  # CI/CD
-```
-
-## ❓ Questions?
-
-- Откройте [Discussion](https://github.com/legion14041981-ui/Legion/discussions)
-- Посмотрите [Documentation](https://www.notion.so/2ac65511388d815fa690c20766ed1206)
-
-## 🚀 Release Process
-
-1. Update version in `src/legion/__init__.py`
-2. Update CHANGELOG.md
-3. Create PR to `main`
-4. After merge, create release tag
-5. GitHub Actions автоматически деплоит
-
----
-
-**Спасибо за ваш вклад!** 🚀
-=======
-See full guide in the file content above.
-
----
-
-**Спасибо за ваш вклад!** 🚀
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+Every contribution helps make Legion better!

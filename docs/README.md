@@ -1,228 +1,82 @@
-# 📚 Legion AI System v2.0 - Документация
+# 🌟 Legion AI System v2.0 - Документация
 
 ## 📑 Оглавление
 
-1. [Quick Start Guide](AI_ENHANCEMENTS_QUICKSTART.md) - Быстрый старт с v2.0
-<<<<<<< HEAD
+1. [Быстрый старт](#быстрый-старт) - Начало работы с v2.0
 2. [Архитектура](#архитектура) - Обзор системы
 3. [API Reference](#api-reference) - Справочник по API
 4. [Примеры](#примеры) - Примеры использования
 5. [Развертывание](#развертывание) - Production deployment
 
-## 🏛️ Архитектура
+## 🏗️ Архитектура
 
 ### Общая схема
 
 ```
-Legion AI System v2.0
-│
-├── LegionCore (Координатор)
-│   ├── Agent Registry
-│   ├── Task Queue
-│   └── Lifecycle Management
-│
-├── MCP Layer (Model Context Protocol)
-│   ├── MCP Server (FastAPI)
-│   ├── Tool Registry (100+ tools)
-│   ├── Code Executor (Sandboxed)
-│   └── MCP Client (External servers)
-│
-├── AI Integration
-│   ├── Script Generator (GPT-5.1-Codex)
-│   ├── Syntax Validator
-│   └── Self-Healing Engine
-│
-├── Multi-Agent Orchestration
-│   ├── Planning Agent (Task decomposition)
-│   ├── Execution Agent (Browser automation)
-│   ├── Monitoring Agent (Error detection)
-│   └── Patterns (Sequential/Parallel/Hierarchical/Handoff)
-│
-├── Browser Automation
-│   ├── Playwright Agent
-│   ├── Cross-browser (Chromium/Firefox/WebKit)
-│   └── Auto-wait & Self-healing
-│
-└── Supabase Integration
-    ├── PostgreSQL Database
-    ├── Edge Functions
-    └── Realtime subscriptions
+┌─────────────────┐
+│  LegionAISystem │
+└────────┬────────┘
+        │
+┌───────┼───────┐
+│       │       │
+▼       ▼       ▼
+ MCP   AI    Browser
+Server Script Automation
 ```
 
-### Ключевые компоненты
+### Компоненты
 
-#### 1. **LegionCore** - Главный координатор
+- **LegionCore** - Ядро системы
+- **MCP Server** - Model Context Protocol сервер
+- **Orchestrator** - Оркестрация агентов
+- **Browser Agent** - Playwright автоматизация
 
-- Управление жизненным циклом агентов
-- Регистрация и диспетчеризация задач
-- Мониторинг состояния системы
+## 🚀 Быстрый старт
 
-#### 2. **MCP Server** - Model Context Protocol
+### Установка
 
-- Стандартизированный протокол AI tool integration
-- Совместимость с Claude, GPT, и другими AI
-- Async tool execution
-- HMAC security
+```bash
+pip install legion-ai
+```
 
-#### 3. **PlaywrightBrowserAgent** - Браузерная автоматизация
+### Использование
 
-- Кросс-браузерная поддержка
-- Auto-wait для элементов
-- Self-healing при изменении selectors
-- Screenshot и PDF generation
+```python
+from legion import LegionAISystem
 
-#### 4. **ScriptGenerator** - AI-powered генерация кода
+async def main():
+    system = LegionAISystem()
+    result = await system.execute_task("Анализ данных")
+    print(result)
+```
 
-- Natural language → Playwright code
-- Валидация синтаксиса
-- Self-healing script repair
-- Context-aware generation
-
-#### 5. **MultiAgentOrchestrator** - Координация агентов
-
-- **PlanningAgent** - Декомпозиция задач
-- **ExecutionAgent** - Выполнение автоматизации
-- **MonitoringAgent** - Обнаружение ошибок
-- 4 паттерна оркестрации
-
-## 📖 API Reference
+## 📚 API Reference
 
 ### LegionAISystem
 
 ```python
-from src.legion.integration import LegionAISystem
-
-# Инициализация
-system = LegionAISystem(
-    openai_api_key="your-key",  # Опционально
-    mcp_enabled=True,
-    browser="chromium"
-)
-
-# Выполнение задачи
-result = await system.execute_task(
-    description="Описание задачи на естественном языке",
-    context={"url": "https://example.com"}
-)
-
-# Очистка ресурсов
-await system.cleanup()
+class LegionAISystem:
+    async def execute_task(description: str, context: Optional[Dict] = None) -> Dict
+    async def generate_script(prompt: str, language: str = "python") -> Dict
+    async def browse(url: str, actions: Optional[list] = None) -> Dict
+    async def cleanup() -> None
 ```
 
-### Tool Registry
+## 📦 Примеры
 
-```python
-# Регистрация инструмента
-system.tool_registry.register(
-    name="custom_action",
-    handler=my_function,
-    description="Описание",
-    input_schema={"param": "string"}
-)
+Смотрите директорию `examples/` для примеров использования.
 
-# Выполнение
-result = await system.tool_registry.execute(
-    "custom_action",
-    param="value"
-)
+## 🛠️ Развертывание
 
-# Список инструментов
-tools = system.tool_registry.list_tools()
-```
-
-### Multi-Agent Orchestration
-
-```python
-from src.legion.orchestration import MultiAgentOrchestrator
-
-orchestrator = MultiAgentOrchestrator()
-
-# Hierarchical pattern
-orchestrator.build_hierarchical_workflow(
-    root_agent="planning",
-    child_agents=["execution", "monitoring"]
-)
-
-result = await orchestrator.execute({
-    "description": "Задача",
-    "context": {}
-})
-```
-
-## 💻 Примеры
-
-См. [examples/](../examples/) для полных примеров:
-
-- `ai_automation_demo.py` - Основное демо
-- Более примеров в README проекта
-
-## 🚀 Развертывание
-
-### Локальная установка
+### Docker
 
 ```bash
-git clone https://github.com/legion14041981-ui/Legion.git
-cd Legion
-git checkout feature/ai-enhancements-2025
-python -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
-playwright install
-cp .env.example .env
-# Редактируйте .env
+docker-compose up -d
 ```
 
-### Docker Deployment
+### Переменные окружения
 
-```bash
-# В разработке
-```
-
-### Production Checklist
-
-- [ ] Конфигурация `.env` с production значениями
-- [ ] Supabase database migrations
-- [ ] Настройка Prometheus/Grafana
-- [ ] Запуск тестов в staging
-- [ ] Настройка CI/CD pipeline
-- [ ] Мониторинг и алерты
-
-## 🔗 Ссылки
-
-- **Notion Документация**: https://www.notion.so/2ac65511388d815fa690c20766ed1206
-- **GitHub Repository**: https://github.com/legion14041981-ui/Legion
-- **Supabase Project**: https://supabase.com/dashboard/project/hdwvhqxyzcgkrkosbuzk
-
-## 👥 Контрибьюторы
-
-Вклад приветствуется! См. [CONTRIBUTING.md](../CONTRIBUTING.md)
-
-## 📝 Лицензия
-
-MIT License - см. [LICENSE](../LICENSE)
-=======
-2. Архитектура - Обзор системы
-3. API Reference - Справочник по API
-4. Примеры - Примеры использования
-5. Развертывание - Production deployment
-
-## 🏛️ Архитектура
-
-Legion AI System v2.0 состоит из:
-
-- **LegionCore** - Главный координатор
-- **MCP Layer** - Model Context Protocol
-- **AI Integration** - GPT-5.1-Codex
-- **Multi-Agent Orchestration** - Planning + Execution + Monitoring
-- **Browser Automation** - Playwright
-
-## 📖 Ссылки
-
-- **GitHub**: https://github.com/legion14041981-ui/Legion
-- **Notion**: https://www.notion.so/2ac65511388d815fa690c20766ed1206
-- **Supabase**: https://supabase.com/dashboard/project/hdwvhqxyzcgkrkosbuzk
-
----
-
-**Legion v2.0** - AI-powered automation 🚀
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+| Переменная | Описание | По умолчанию |
+|----------|----------|------------|
+| LOG_LEVEL | Уровень логирования | INFO |
+| MCP_SERVER_PORT | Порт MCP сервера | 8001 |

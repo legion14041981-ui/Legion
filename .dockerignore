@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Git
 .git
 .gitignore
@@ -13,144 +12,54 @@
 # IDEs
 .vscode
 .idea
-=======
-# Python cache
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-*.egg-info/
-dist/
-build/
-
-# Virtual environments
-venv/
-env/
-ENV/
-.venv
-
-# IDE
-.vscode/
-.idea/
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
 *.swp
 *.swo
-*~
-.DS_Store
 
-<<<<<<< HEAD
-# Python cache
+# Python
 __pycache__
 *.py[cod]
 *$py.class
 *.so
-.pytest_cache
-.mypy_cache
-.ruff_cache
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
 
 # Virtual environments
-venv
-.venv
-env
-ENV
+venv/
+env/
+.venv/
+.env/
 
-# Build artifacts
-build
-dist
-*.egg-info
-.eggs
-.tox
-.nox
-target
-
-# Testing
-.coverage
-.coverage.*
-htmlcov
-.hypothesis
-nosetests.xml
-coverage.xml
-*.cover
-
-# Documentation
-docs/_build
-site
-*.md
-!README.md
-
-# Logs
-*.log
-logs
-
-# Environment files (SECURITY)
-.env
-.env.*
-!.env.example
-*.key
-*.pem
-*.crt
-credentials.json
-secrets
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-db.sqlite3-journal
-
-# OS files
-Thumbs.db
-.DS_Store
-
-# Backup files
-*.bak
-*.swp
-*.tmp
-
-# Node (if any)
-node_modules
-npm-debug.log
-yarn-error.log
-
-# Jupyter
-.ipynb_checkpoints
-
-# Playwright browsers (will be installed in container)
-.cache/ms-playwright
-
-# Examples (not needed in production)
-examples
-
-# Tests (not needed in production)
-tests
-benchmarks
-
-# Development configs
-pyproject.toml
-setup.cfg
-setup.py
-MANIFEST.in
-tox.ini
-=======
 # Testing
 .pytest_cache/
 .coverage
 htmlcov/
-
-# Environment
-.env
-.env.local
-
-# Node
-node_modules/
-npm-debug.log
+.tox/
+.nox/
+coverage.xml
+*.cover
 
 # Documentation
 docs/_build/
 
-# Secrets
-secrets/
-*.pem
-*.key
->>>>>>> ec0dad20ff32c3cf9f03df6da0e9f2b48cd10535
+# Local development
+*.log
+*.local
+.env.local
+
+# Docker
+Dockerfile.dev
+docker-compose.dev.yml

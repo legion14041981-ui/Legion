@@ -10,6 +10,7 @@ Legion Core Module - руководителя работы многоагент�
 """
 
 import logging
+import asyncio
 import os
 from typing import List, Dict, Any, Optional
 from abc import ABC
@@ -223,4 +224,134 @@ class LegionCore:
             Dict[str, Any]: Словарь агентов
         """
         return self.agents.copy()
+
+    # ===== v2.3 Async Methods =====
+    
+    async def register_agent_async(self, agent_id: str, agent: Any) -> None:
+        """
+        Асинхронная регистрация агента (v2.3).
+        
+        Args:
+            agent_id (str): Уникальный идентификатор агента
+            agent (Any): Объект агента
+        """
+        # Используем синхронную реализацию (она thread-safe)
+        self.register_agent(agent_id, agent)
+        
+        # Если у агента есть async start метод, вызовем его
+        if hasattr(agent, 'start') and asyncio.iscoroutinefunction(agent.start):
+            await agent.start()
+        
+        logger.info(f"✅ Agent '{agent_id}' registered async")
+    
+    async def start_async(self) -> None:
+        """
+        Асинхронный запуск системы (v2.3).
+        """
+        self.is_running = True
+        logger.info("▶️ LegionCore started (async)")
+        
+        # Запустить всех зарегистрированных агентов
+        tasks = []
+        for agent_id, agent in self.agents.items():
+            if hasattr(agent, 'start'):
+                if asyncio.iscoroutinefunction(agent.start):
+                    tasks.append(agent.start())
+                else:
+                    agent.start()
+                logger.debug(f"Started agent: {agent_id}")
+        
+        # Дождаться запуска всех async агентов
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+    
+    async def stop_async(self) -> None:
+        """
+        Асинхронная остановка системы (v2.3).
+        """
+        logger.info("⏹️ LegionCore stopping (async)...")
+        
+        # Остановить всех агентов
+        tasks = []
+        for agent_id, agent in self.agents.items():
+            if hasattr(agent, 'stop'):
+                if asyncio.iscoroutinefunction(agent.stop):
+                    tasks.append(agent.stop())
+                else:
+                    agent.stop()
+                logger.debug(f"Stopped agent: {agent_id}")
+        
+        # Дождаться остановки всех async агентов
+        if tasks:
+            await asyncio.gather(*tasks, return_exceptions=True)
+        
+        self.is_running = False
+        logger.info("⏹️ LegionCore stopped (async)")
+    
+    # ===== v2.3 Health & Metrics =====
+    
+    def get_health(self) -> Dict[str, Any]:
+        """
+        Получить статус здоровья системы (v2.3).
+        
+        Returns:
+            Dict[str, Any]: Информация о статусе системы
+        """
+        from datetime import datetime
+        
+        # Подсчитать активные агенты
+        active_count = sum(
+            1 for agent in self.agents.values()
+            if hasattr(agent, 'is_active') and agent.is_active
+        )
+        
+        # Определить общий статус
+        if not self.is_running:
+            status = "unhealthy"
+        elif active_count == len(self.agents):
+            status = "healthy"
+        elif active_count > 0:
+            status = "degraded"
+        else:
+            status = "unhealthy"
+        
+        return {
+            "status": status,
+            "timestamp": datetime.utcnow().isoformat(),
+            "agents": {
+                "total": len(self.agents),
+                "active": active_count,
+                "inactive": len(self.agents) - active_count
+            },
+            "is_running": self.is_running,
+            "os_integration": self.os_integration_enabled
+        }
+    
+    def get_metrics(self) -> Dict[str, Any]:
+        """
+        Получить метрики системы (v2.3).
+        
+        Returns:
+            Dict[str, Any]: Метрики системы
+        """
+        # Подсчитать активные агенты
+        active_count = sum(
+            1 for agent in self.agents.values()
+            if hasattr(agent, 'is_active') and agent.is_active
+        )
+        
+        # Подсчитать выполненные задачи (если поддерживается)
+        total_tasks = sum(
+            getattr(agent, 'tasks_completed', 0)
+            for agent in self.agents.values()
+        )
+        
+        return {
+            "total_agents": len(self.agents),
+            "active_agents": active_count,
+            "inactive_agents": len(self.agents) - active_count,
+            "total_tasks": total_tasks,
+            "system_running": self.is_running,
+            "os_integration_enabled": self.os_integration_enabled
+        }
 

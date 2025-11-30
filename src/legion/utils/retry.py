@@ -159,25 +159,24 @@ class RetryableTask:
         """
         # Check if func is a coroutine object (already called)
         if inspect.iscoroutine(self.func):
-            # It's a coroutine object - execute it directly
+            # It's a coroutine object - can only execute once
+            # For retries, we just re-raise the last exception
             current_delay = self.delay
             
             for attempt in range(1, self.max_attempts + 1):
                 self.attempts = attempt
                 
                 try:
-                    # For coroutine objects, we can only execute once
-                    # So we need to handle this case specially
+                    # Coroutine can only be awaited once
                     if attempt == 1:
                         result = await self.func
                         self.success = True
                         return result
                     else:
-                        # Can't retry a coroutine object
-                        raise RuntimeError(
-                            "Cannot retry coroutine object - "
-                            "pass callable instead"
-                        )
+                        # Cannot retry coroutine - just raise the last error
+                        if self.last_error:
+                            raise self.last_error
+                        break
                 except Exception as e:
                     self.last_error = e
                     

@@ -34,8 +34,7 @@ from legion.neuro_architecture.adaptive_refactor_engine import (
     AdaptiveRefactorEngine
 )
 from legion.neuro_architecture.storage_v4_1 import (
-    L4SemanticCache,
-    EnhancedArchitectureCache
+    L4SemanticCache
 )
 from legion.neuro_architecture.mobile_agent_v4_1 import (
     EnhancedUIInterpreter,

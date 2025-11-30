@@ -26,7 +26,7 @@ except ImportError:
     PANDAS_AVAILABLE = False
     logging.warning("pandas not installed. DataFrame operations will be limited.")
 
-from .base_agent import LegionAgent
+from .base_agent import LegionAgent, AgentConfig
 
 
 class DataAgent(LegionAgent):
@@ -47,8 +47,13 @@ class DataAgent(LegionAgent):
         description: str = "Data processing agent",
         **kwargs: Any,
     ) -> None:
-        super().__init__(agent_id=agent_id, name=name, description=description, **kwargs)
-
+        config = AgentConfig(
+            name=name,
+            agent_type="DataAgent"
+        )
+        super().__init__(config)
+        self.agent_id = agent_id
+        self.description = description
 
         async def execute(self, task_data: Dict[str, Any]) -> Any:
                 """

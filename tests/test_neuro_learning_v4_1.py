@@ -22,10 +22,8 @@ from legion.neuro_architecture import (
     NeuroLearningLoop,
     MetricsSnapshot,
     Issue,
-    ImprovementPatch,
     SelfImprover,
-    CodeMetrics,
-    CodePatch
+    CodeMetrics
 )
 
 # Import from new v4.1 modules

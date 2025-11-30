@@ -1,10 +1,8 @@
 """
 Circuit Breaker Pattern Implementation for Legion.
-
 Prevents cascading failures by stopping requests to failing services.
 Implements three states: CLOSED, OPEN, HALF_OPEN.
 """
-
 import logging
 from datetime import datetime, timedelta
 from typing import Callable, Any, Optional
@@ -20,6 +18,7 @@ class CircuitBreakerState(Enum):
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
+
 
 class CircuitBreakerOpenError(Exception):
     """Raised when circuit breaker is open."""
@@ -41,6 +40,7 @@ class CircuitBreaker:
         expected_exception (Exception): Exception type to catch
     """
     
+    # Keep string constants for backward compatibility
     CLOSED = "closed"
     OPEN = "open"
     HALF_OPEN = "half_open"
@@ -65,12 +65,40 @@ class CircuitBreaker:
         
         self.failure_count = 0
         self.last_failure_time: Optional[datetime] = None
-        self.state = self.CLOSED
+        # Use enum for state (tests expect CircuitBreakerState enum)
+        self.state = CircuitBreakerState.CLOSED
         
         logger.info(
             f"Circuit breaker initialized: threshold={failure_threshold}, "
             f"timeout={timeout}s"
         )
+    
+    def __call__(self, func: Callable) -> Callable:
+        """
+        Make CircuitBreaker callable as a decorator.
+        
+        This allows using CircuitBreaker instances like:
+            cb = CircuitBreaker()
+            @cb
+            async def my_function():
+                pass
+        
+        Args:
+            func: Function to wrap
+            
+        Returns:
+            Wrapped function
+        """
+        if asyncio.iscoroutinefunction(func):
+            @wraps(func)
+            async def async_wrapper(*args, **kwargs):
+                return await self.call_async(func, *args, **kwargs)
+            return async_wrapper
+        else:
+            @wraps(func)
+            def sync_wrapper(*args, **kwargs):
+                return self.call(func, *args, **kwargs)
+            return sync_wrapper
     
     def call(self, func: Callable, *args, **kwargs) -> Any:
         """
@@ -87,9 +115,9 @@ class CircuitBreaker:
         Raises:
             CircuitBreakerOpenError: If circuit is open
         """
-        if self.state == self.OPEN:
+        if self.state == CircuitBreakerState.OPEN:
             if self._should_attempt_reset():
-                self.state = self.HALF_OPEN
+                self.state = CircuitBreakerState.HALF_OPEN
                 logger.info("Circuit breaker entering HALF_OPEN state")
             else:
                 raise CircuitBreakerOpenError(
@@ -120,9 +148,9 @@ class CircuitBreaker:
         Raises:
             CircuitBreakerOpenError: If circuit is open
         """
-        if self.state == self.OPEN:
+        if self.state == CircuitBreakerState.OPEN:
             if self._should_attempt_reset():
-                self.state = self.HALF_OPEN
+                self.state = CircuitBreakerState.HALF_OPEN
                 logger.info("Circuit breaker entering HALF_OPEN state")
             else:
                 raise CircuitBreakerOpenError(
@@ -148,9 +176,9 @@ class CircuitBreaker:
     
     def _on_success(self):
         """Handle successful call."""
-        if self.state == self.HALF_OPEN:
+        if self.state == CircuitBreakerState.HALF_OPEN:
             logger.info("Circuit breaker recovered, transitioning to CLOSED")
-            self.state = self.CLOSED
+            self.state = CircuitBreakerState.CLOSED
         
         self.failure_count = 0
     
@@ -164,7 +192,7 @@ class CircuitBreaker:
                 f"Circuit breaker threshold reached ({self.failure_count}), "
                 f"transitioning to OPEN"
             )
-            self.state = self.OPEN
+            self.state = CircuitBreakerState.OPEN
     
     def get_state(self) -> dict:
         """Get current circuit breaker state."""

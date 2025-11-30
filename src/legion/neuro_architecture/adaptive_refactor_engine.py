@@ -11,7 +11,6 @@ Adaptive Refactor Engine - Архитектурная модернизация �
 
 import ast
 import logging
-import re
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set

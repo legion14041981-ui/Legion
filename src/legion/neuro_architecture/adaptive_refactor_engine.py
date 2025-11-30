@@ -14,7 +14,6 @@ import logging
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Set
-import json
 
 logger = logging.getLogger(__name__)
 

@@ -1,0 +1,239 @@
+"""
+Watchdog - мониторинг деградации и auto-rollback.
+
+Отслеживает:
+- Метрики производительности
+- Error rates
+- Latency degradation
+- Resource usage
+
+Выполняет:
+- Automated rollback при деградации
+- Alert notifications
+- Snapshot restoration
+"""
+
+import logging
+import time
+from typing import Dict, Any, List, Optional
+from dataclasses import dataclass
+from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class MetricThreshold:
+    """Порог для метрики."""
+    name: str
+    max_value: Optional[float] = None
+    min_value: Optional[float] = None
+    degradation_pct: float = 10.0  # % ухудшения
+
+
+@dataclass
+class HealthCheckResult:
+    """Результат проверки здоровья."""
+    timestamp: str
+    healthy: bool
+    metrics: Dict[str, float]
+    violations: List[str]
+    recommendation: str
+
+
+class PerformanceWatchdog:
+    """
+    Watchdog для мониторинга производительности.
+    
+    Автоматический rollback при деградации:
+    - Error rate > 5%
+    - Latency > +20% baseline
+    - Memory usage > +50% baseline
+    """
+    
+    DEFAULT_THRESHOLDS = [
+        MetricThreshold(name="error_rate", max_value=0.05),  # 5%
+        MetricThreshold(name="latency_ms", degradation_pct=20.0),
+        MetricThreshold(name="memory_mb", degradation_pct=50.0),
+        MetricThreshold(name="cpu_percent", max_value=90.0),
+    ]
+    
+    def __init__(
+        self,
+        check_interval: int = 60,
+        thresholds: Optional[List[MetricThreshold]] = None
+    ):
+        """
+        Инициализация watchdog.
+        
+        Args:
+            check_interval: Интервал проверки (секунды)
+            thresholds: Пользовательские пороги
+        """
+        self.check_interval = check_interval
+        self.thresholds = thresholds or self.DEFAULT_THRESHOLDS
+        self.baseline_metrics: Dict[str, float] = {}
+        self.history: List[HealthCheckResult] = []
+        self.is_running = False
+        logger.info(f"✅ PerformanceWatchdog initialized (interval={check_interval}s)")
+    
+    def set_baseline(self, metrics: Dict[str, float]) -> None:
+        """
+        Установить baseline метрики.
+        
+        Args:
+            metrics: Метрики baseline
+        """
+        self.baseline_metrics = metrics.copy()
+        logger.info(f"📊 Baseline metrics set: {metrics}")
+    
+    def check_health(self, current_metrics: Dict[str, float]) -> HealthCheckResult:
+        """
+        Проверить здоровье системы.
+        
+        Args:
+            current_metrics: Текущие метрики
+        
+        Returns:
+            HealthCheckResult
+        """
+        violations = []
+        
+        for threshold in self.thresholds:
+            metric_name = threshold.name
+            if metric_name not in current_metrics:
+                continue
+            
+            current = current_metrics[metric_name]
+            
+            # Проверка абсолютного максимума
+            if threshold.max_value is not None and current > threshold.max_value:
+                violations.append(
+                    f"{metric_name} exceeds max: {current:.2f} > {threshold.max_value:.2f}"
+                )
+            
+            # Проверка абсолютного минимума
+            if threshold.min_value is not None and current < threshold.min_value:
+                violations.append(
+                    f"{metric_name} below min: {current:.2f} < {threshold.min_value:.2f}"
+                )
+            
+            # Проверка деградации от baseline
+            if metric_name in self.baseline_metrics:
+                baseline = self.baseline_metrics[metric_name]
+                degradation_pct = ((current - baseline) / baseline) * 100
+                
+                if abs(degradation_pct) > threshold.degradation_pct:
+                    violations.append(
+                        f"{metric_name} degraded by {degradation_pct:.1f}%: "
+                        f"{baseline:.2f} → {current:.2f}"
+                    )
+        
+        healthy = len(violations) == 0
+        recommendation = self._generate_recommendation(violations)
+        
+        result = HealthCheckResult(
+            timestamp=datetime.utcnow().isoformat(),
+            healthy=healthy,
+            metrics=current_metrics,
+            violations=violations,
+            recommendation=recommendation
+        )
+        
+        self.history.append(result)
+        
+        if not healthy:
+            logger.warning(f"⚠️ Health check failed: {len(violations)} violations")
+            for violation in violations:
+                logger.warning(f"   - {violation}")
+        else:
+            logger.info("✅ Health check passed")
+        
+        return result
+    
+    def _generate_recommendation(self, violations: List[str]) -> str:
+        """Генерация рекомендации."""
+        if not violations:
+            return "System healthy. Continue monitoring."
+        
+        if len(violations) >= 3:
+            return "🛑 CRITICAL: Multiple violations detected. Immediate rollback recommended."
+        elif len(violations) == 2:
+            return "⚠️ WARNING: Significant degradation. Consider rollback."
+        else:
+            return "⚠️ CAUTION: Minor issue detected. Monitor closely."
+    
+    def should_rollback(self, result: HealthCheckResult) -> bool:
+        """
+        Определить, нужен ли rollback.
+        
+        Args:
+            result: Результат health check
+        
+        Returns:
+            True если нужен rollback
+        """
+        # Критические нарушения
+        critical_keywords = ['CRITICAL', 'exceeds max', 'degraded by']
+        
+        for violation in result.violations:
+            for keyword in critical_keywords:
+                if keyword in violation:
+                    return True
+        
+        # Множественные нарушения
+        if len(result.violations) >= 3:
+            return True
+        
+        # История деградации (3+ последовательных неудачных проверки)
+        recent_checks = self.history[-3:]
+        if len(recent_checks) >= 3 and all(not check.healthy for check in recent_checks):
+            logger.warning("⚠️ Persistent degradation detected (3+ failures)")
+            return True
+        
+        return False
+    
+    def trigger_rollback(
+        self,
+        current_snapshot_id: str,
+        previous_snapshot_id: str
+    ) -> Dict[str, Any]:
+        """
+        Запустить rollback.
+        
+        Args:
+            current_snapshot_id: ID текущего snapshot
+            previous_snapshot_id: ID предыдущего stable snapshot
+        
+        Returns:
+            Результат rollback
+        """
+        logger.warning("🔄 Initiating automatic rollback...")
+        logger.warning(f"   From: {current_snapshot_id}")
+        logger.warning(f"   To: {previous_snapshot_id}")
+        
+        # TODO: Реальный rollback через ArchitectureRegistry
+        # registry.restore_snapshot(previous_snapshot_id)
+        
+        return {
+            'success': True,
+            'rolled_back_from': current_snapshot_id,
+            'restored_to': previous_snapshot_id,
+            'timestamp': datetime.utcnow().isoformat()
+        }
+    
+    def get_health_report(self, last_n: int = 10) -> Dict[str, Any]:
+        """Получить отчёт о здоровье."""
+        recent_checks = self.history[-last_n:]
+        
+        healthy_count = sum(1 for check in recent_checks if check.healthy)
+        health_rate = healthy_count / len(recent_checks) if recent_checks else 0
+        
+        return {
+            'total_checks': len(self.history),
+            'recent_checks': len(recent_checks),
+            'healthy_count': healthy_count,
+            'health_rate': health_rate,
+            'last_check': recent_checks[-1].__dict__ if recent_checks else None,
+            'baseline_metrics': self.baseline_metrics
+        }

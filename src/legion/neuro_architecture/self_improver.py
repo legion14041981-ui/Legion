@@ -16,6 +16,10 @@ import tempfile
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Any, Optional, Tuple
+import json
+
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class CodeMetrics:

@@ -1,13 +1,12 @@
 """
 Retry mechanism with exponential backoff for Legion.
-
 Automatically retries failed operations with configurable backoff.
 """
-
 import asyncio
 import logging
+import inspect
 from functools import wraps
-from typing import Callable, Any, Optional, Tuple, Type
+from typing import Callable, Any, Optional, Tuple, Type, Union
 import time
 
 logger = logging.getLogger(__name__)
@@ -114,11 +113,12 @@ class RetryableTask:
     Wrapper for retryable tasks with state tracking.
     
     Useful when you need more control over retry logic.
+    Supports both callable functions and coroutine objects.
     """
     
     def __init__(
         self,
-        func: Callable,
+        func: Union[Callable, Any],  # Can be callable or coroutine
         max_attempts: int = 3,
         delay: float = 1.0,
         backoff: float = 2.0
@@ -127,7 +127,7 @@ class RetryableTask:
         Initialize retryable task.
         
         Args:
-            func: Function to execute
+            func: Function to execute or coroutine object
             max_attempts: Maximum attempts
             delay: Initial delay
             backoff: Backoff multiplier
@@ -140,6 +140,69 @@ class RetryableTask:
         self.attempts = 0
         self.last_error: Optional[Exception] = None
         self.success = False
+    
+    @property
+    def attempt(self) -> int:
+        """Alias for attempts (some tests expect 'attempt' attribute)."""
+        return self.attempts
+    
+    async def execute(self, *args, **kwargs) -> Any:
+        """
+        Unified execute method that handles both sync and async functions/coroutines.
+        
+        Tests expect this single method to work with:
+        - Callable functions (sync or async)
+        - Coroutine objects (already called async functions)
+        
+        Returns:
+            Result of function execution
+        """
+        # Check if func is a coroutine object (already called)
+        if inspect.iscoroutine(self.func):
+            # It's a coroutine object - execute it directly
+            current_delay = self.delay
+            
+            for attempt in range(1, self.max_attempts + 1):
+                self.attempts = attempt
+                
+                try:
+                    # For coroutine objects, we can only execute once
+                    # So we need to handle this case specially
+                    if attempt == 1:
+                        result = await self.func
+                        self.success = True
+                        return result
+                    else:
+                        # Can't retry a coroutine object
+                        raise RuntimeError(
+                            "Cannot retry coroutine object - "
+                            "pass callable instead"
+                        )
+                except Exception as e:
+                    self.last_error = e
+                    
+                    if attempt == self.max_attempts:
+                        raise
+                    
+                    logger.warning(
+                        f"Task failed (attempt {attempt}/{self.max_attempts}): {e}"
+                    )
+                    await asyncio.sleep(current_delay)
+                    current_delay *= self.backoff
+        
+        # Check if func is an async callable
+        elif asyncio.iscoroutinefunction(self.func):
+            return await self.execute_async(*args, **kwargs)
+        
+        # Check if func is a regular callable
+        elif callable(self.func):
+            # Use execute_sync for sync functions
+            return self.execute_sync(*args, **kwargs)
+        
+        else:
+            raise TypeError(
+                f"func must be callable or coroutine, got {type(self.func)}"
+            )
     
     async def execute_async(self, *args, **kwargs) -> Any:
         """Execute async task with retry logic."""
@@ -164,7 +227,7 @@ class RetryableTask:
                 await asyncio.sleep(current_delay)
                 current_delay *= self.backoff
     
-    def execute(self, *args, **kwargs) -> Any:
+    def execute_sync(self, *args, **kwargs) -> Any:
         """Execute sync task with retry logic."""
         current_delay = self.delay
         

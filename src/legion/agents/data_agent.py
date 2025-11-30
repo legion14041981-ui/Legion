@@ -49,6 +49,25 @@ class DataAgent(LegionAgent):
     ) -> None:
         super().__init__(agent_id=agent_id, name=name, description=description, **kwargs)
 
+
+        def execute(self, *args, **kwargs) -> Any:
+        """
+        Execute method required by abstract base class.
+        
+        This is a minimal implementation to allow DataAgent instantiation.
+        Subclasses should override this method with specific logic.
+        
+        Args:
+            *args: Positional arguments
+            **kwargs: Keyword arguments
+            
+        Raises:
+            NotImplementedError: This method must be implemented by subclasses
+        """
+        raise NotImplementedError(
+            "DataAgent.execute() must be implemented by subclasses. "
+            "Use specific methods like parse_json(), parse_csv(), etc."
+        )
     async def parse_json(self, data: Union[str, bytes]) -> Any:
         """
         Парсинг JSON-данных.

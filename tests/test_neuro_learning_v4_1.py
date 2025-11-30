@@ -317,7 +317,7 @@ class TestEnhancedWatchdog:
             'error_rate': 0.02
         }
         
-        result = watchdog.check_health_comprehensive(metrics)
+        watchdog.check_health_comprehensive(metrics)
         tasks = watchdog.create_improver_tasks()
         
         assert len(tasks) > 0

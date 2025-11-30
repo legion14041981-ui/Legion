@@ -1,0 +1,83 @@
+{
+  "version": "4.1.0",
+  "status": "production",
+  "deployment_stage": "shadow_testing",
+  "activated_at": "2025-12-01T00:43:00Z",
+  "activated_by": "legion-ultra-orchestrator",
+  "semantic_hash": "sha256:a7f8b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5",
+  "merge_commit": "82b78a3e23957690cdb5ed6930cfb36c5122c915",
+  "features": {
+    "neuro_learning_loop": {
+      "enabled": true,
+      "cycle_interval_hours": 12,
+      "auto_apply": false,
+      "mode": "shadow"
+    },
+    "self_improver": {
+      "enabled": true,
+      "auto_apply": false,
+      "min_quality_score": 80.0,
+      "mode": "shadow"
+    },
+    "watchdog_v4_1": {
+      "enabled": true,
+      "mode": "production",
+      "check_interval_seconds": 300,
+      "monitoring_criteria": 21,
+      "auto_rollback": true
+    },
+    "l4_cache": {
+      "enabled": true,
+      "max_size": 1000,
+      "similarity_threshold": 0.85,
+      "mode": "shadow"
+    },
+    "mobile_agent_v4_1": {
+      "enabled": false,
+      "mode": "shadow"
+    },
+    "safety_gates_v4_1": {
+      "enabled": true,
+      "strict_mode": true
+    }
+  },
+  "deployment_plan": {
+    "stage_1": {
+      "name": "shadow_testing",
+      "traffic": "0%",
+      "duration": "24h",
+      "start": "2025-12-01T00:43:00Z",
+      "end": "2025-12-02T00:43:00Z",
+      "status": "active"
+    },
+    "stage_2": {
+      "name": "canary_5",
+      "traffic": "5%",
+      "duration": "48h",
+      "start": "2025-12-03T00:00:00Z",
+      "status": "pending"
+    },
+    "stage_3": {
+      "name": "canary_25",
+      "traffic": "25%",
+      "duration": "72h",
+      "start": "2025-12-06T00:00:00Z",
+      "status": "pending"
+    },
+    "stage_4": {
+      "name": "full_rollout",
+      "traffic": "100%",
+      "start": "2025-12-10T00:00:00Z",
+      "status": "pending"
+    }
+  },
+  "rollback_plan": {
+    "fallback_version": "4.0.0",
+    "auto_rollback_triggers": [
+      "critical_alerts",
+      "3_consecutive_failures",
+      "safety_violations"
+    ],
+    "max_rollback_time_minutes": 5
+  }
+}

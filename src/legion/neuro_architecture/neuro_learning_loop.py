@@ -14,7 +14,7 @@ Neuro-Learning Loop - Autonomous Self-Improvement System.
 import asyncio
 import logging
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Any, Optional

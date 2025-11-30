@@ -51,7 +51,7 @@ class DataAgent(LegionAgent):
 
 
         def execute(self, *args, **kwargs) -> Any:
-        """
+                """
         Execute method required by abstract base class.
         
         This is a minimal implementation to allow DataAgent instantiation.

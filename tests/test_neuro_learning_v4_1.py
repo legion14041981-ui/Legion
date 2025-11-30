@@ -43,9 +43,9 @@ from legion.neuro_architecture.mobile_agent_v4_1 import (
     PlannedAction
 )
 from legion.neuro_architecture.watchdog_v4_1 import (
-    EnhancedPerformanceWatchdog,
-    WatchdogAlert
+    EnhancedPerformanceWatchdog
 )
+
 
 
 class TestNeuroLearningLoop:

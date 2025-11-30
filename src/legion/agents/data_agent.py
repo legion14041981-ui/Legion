@@ -50,7 +50,7 @@ class DataAgent(LegionAgent):
         super().__init__(agent_id=agent_id, name=name, description=description, **kwargs)
 
 
-        def execute(self, *args, **kwargs) -> Any:
+        async def execute(self, task_data: Dict[str, Any]) -> Any:
                 """
         Execute method required by abstract base class.
         
@@ -58,9 +58,7 @@ class DataAgent(LegionAgent):
         Subclasses should override this method with specific logic.
         
         Args:
-            *args: Positional arguments
-            **kwargs: Keyword arguments
-            
+        task_data (Dict[str, Any]): Task data containing parameters for execution            
         Raises:
             NotImplementedError: This method must be implemented by subclasses
         """

@@ -12,7 +12,6 @@ Self-Improver Engine - Автоматическая генерация и при
 
 import ast
 import logging
-import subprocess
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path

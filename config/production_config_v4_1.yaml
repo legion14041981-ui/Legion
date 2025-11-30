@@ -1,0 +1,267 @@
+# Legion AI System v4.1.0 - Production Configuration
+# Generated: 2025-12-01T00:21:00Z MSK
+
+version: "4.1.0"
+environment: "production"
+
+# ============================================================================
+# REGISTRY
+# ============================================================================
+registry:
+  current_version: "4.1.0"
+  fallback_version: "4.0.0"
+  entries:
+    - "stable/v4.1.0"
+    - "stable/v4.0.0/archived"
+  integrity_check: true
+  auto_validate: true
+
+# ============================================================================
+# NEURO-LEARNING LOOP
+# ============================================================================
+neuro_learning_loop:
+  enabled: true
+  cycle_interval_hours: 12
+  auto_apply: true
+  risk_threshold: 0.6  # Balanced risk tolerance
+  
+  metrics:
+    collect_interval_seconds: 60
+    retention_days: 30
+    
+  issue_analysis:
+    severity_threshold: "warning"
+    categories:
+      - "stability"
+      - "performance"
+      - "capacity"
+      - "mobile"
+  
+  patch_generation:
+    max_patches_per_cycle: 5
+    min_quality_improvement: 0.05
+    
+  validation:
+    static_analysis: true
+    dynamic_evaluation: true
+    performance_benchmarks: true
+  
+  rollback:
+    auto_rollback_on_degradation: true
+    rollback_threshold_failures: 3
+    rollback_within_minutes: 15
+
+# ============================================================================
+# SELF-IMPROVER ENGINE
+# ============================================================================
+self_improver:
+  enabled: true
+  auto_apply: true
+  min_quality_score: 70.0
+  
+  code_analysis:
+    ast_based: true
+    complexity_threshold: 10
+    
+  code_smells:
+    - "long_function"
+    - "high_complexity"
+    - "duplicate_code"
+    - "magic_numbers"
+    - "long_parameter_list"
+    - "unused_variables"
+    - "dead_code"
+    - "missing_error_handling"
+    - "inconsistent_naming"
+    - "poor_documentation"
+  
+  thresholds:
+    latency_improvement: -0.10  # -10% or better
+    error_reduction: -0.20      # -20% or better
+    cache_improvement: 0.10     # +10% or better
+    stability_improvement: 0.05 # +5% or better
+
+# ============================================================================
+# ADAPTIVE REFACTOR ENGINE
+# ============================================================================
+adaptive_refactor:
+  enabled: true
+  preserve_compatibility: true
+  
+  refactor_types:
+    - "modernize"
+    - "simplify"
+    - "optimize"
+    - "document"
+  
+  risk_assessment:
+    max_risk_score: 0.6
+    require_tests: true
+
+# ============================================================================
+# STORAGE v4.1 (L4 SEMANTIC CACHE)
+# ============================================================================
+storage:
+  l1_cache:
+    enabled: true
+    size: 10
+    ttl_seconds: 300
+  
+  l4_cache:
+    enabled: true
+    max_size: 10000
+    similarity_threshold: 0.85
+    adaptive_cleanup: true
+    cleanup_interval_hours: 24
+    max_age_hours: 48
+  
+  l3_cache:
+    enabled: true
+    storage_dir: "artifacts/cache/l3"
+    compression: "lz4"
+    deduplication: true
+
+# ============================================================================
+# MOBILE AGENT v4.1
+# ============================================================================
+mobile_agent:
+  enabled: true
+  
+  planning:
+    lookahead_depth: 3
+    probabilistic_trees: true
+  
+  retry:
+    max_retries: 5
+    exponential_backoff: true
+    base_delay_seconds: 0.5
+  
+  ocr_recovery:
+    strategies:
+      - "fuzzy_match"
+      - "phonetic_match"
+      - "visual_similarity"
+      - "context_inference"
+      - "spatial_proximity"
+  
+  safety:
+    llm_hallucination_detection: true
+    humanistic_controller: true
+    max_risk_score: 0.7
+
+# ============================================================================
+# WATCHDOG v4.1
+# ============================================================================
+watchdog:
+  enabled: true
+  mode: "production"
+  check_interval_seconds: 300
+  
+  thresholds:
+    # Performance
+    error_rate_warning: 0.03
+    error_rate_alert: 0.05
+    error_rate_critical: 0.10
+    
+    latency_p95_degradation_warning: 0.15
+    latency_p95_degradation_alert: 0.30
+    
+    memory_usage_warning: 0.80
+    memory_usage_alert: 0.90
+    memory_usage_critical: 0.95
+    
+    cpu_usage_warning: 0.75
+    cpu_usage_alert: 0.85
+    cpu_usage_critical: 0.95
+    
+    # System Health
+    cache_hit_rate_warning: 0.75
+    cache_hit_rate_alert: 0.65
+    
+    mobile_success_warning: 0.80
+    mobile_success_alert: 0.70
+    
+    # Architecture
+    deadlock_duration_alert: 30
+    deadlock_duration_critical: 60
+    
+    memory_leak_warning: 10  # MB/hour
+    memory_leak_alert: 50
+    
+    # Evolution
+    self_improvement_failure_warning: 0.10
+    self_improvement_failure_alert: 0.20
+    
+    patch_rollback_warning: 0.15
+    patch_rollback_alert: 0.25
+  
+  actions:
+    auto_create_tasks: true
+    auto_rollback_critical: true
+    alert_channels:
+      - "slack"
+      - "email"
+      - "pagerduty"
+
+# ============================================================================
+# SAFETY GATES v4.1
+# ============================================================================
+safety:
+  enabled: true
+  strict_mode: true
+  
+  containment:
+    enforce_policies: true
+    max_risk_score: 0.7
+  
+  humanistic_controller:
+    enabled: true
+    require_approval_for:
+      - "high_risk_patches"
+      - "architecture_changes"
+      - "safety_modifications"
+  
+  validation:
+    cryptographic_integrity: true
+    registry_checksum: true
+    semantic_hash: true
+
+# ============================================================================
+# LOGGING & MONITORING
+# ============================================================================
+logging:
+  level: "INFO"
+  format: "json"
+  rotation:
+    max_bytes: 104857600  # 100 MB
+    backup_count: 10
+  
+  outputs:
+    - type: "file"
+      path: "logs/legion_v4_1.log"
+    - type: "stdout"
+    - type: "syslog"
+      host: "localhost"
+      port: 514
+
+monitoring:
+  prometheus:
+    enabled: true
+    port: 9090
+    metrics_path: "/metrics"
+  
+  grafana:
+    enabled: true
+    dashboard: "legion_v4_1_dashboard.json"
+
+# ============================================================================
+# DEPLOYMENT
+# ============================================================================
+deployment:
+  strategy: "canary"
+  current_stage: "shadow"  # Will progress: shadow → 5% → 25% → 100%
+  
+  rollback:
+    auto_trigger: true
+    max_rollback_time_minutes: 5
+    fallback_version: "4.0.0"

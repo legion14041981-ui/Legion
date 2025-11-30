@@ -1,56 +1,103 @@
 """
-Legion Neuro-Architecture Module - Ultra-Orchestrator v4.
+Neuro-Architecture Module - Autonomous Architecture Evolution.
 
-Этот модуль реализует автоматическую эволюцию архитектуры LEGION:
-- Генерация и тестирование нейроархитектур
-- Применение адаптеров (LoRA, adapters)
-- Model surgery (объединение, разделение, rewiring)
-- Многокритериальная оптимизация
-- Immutable реестр архитектур
-- Mobile Agent (DroidRun-style)
-- Humanistic Controller (Microsoft AI principles)
-- Memory Manager для обучения
-- Containment Policies для безопасности
+v4.1.0 additions:
+- NeuroLearningLoop: Self-improvement cycle
+- SelfImprover: Code patch generation
+- AdaptiveRefactor: Architecture modernization
+- Memory v4.1: L4 semantic cache
+- Mobile Agent v4.1: Enhanced UI automation
+- Watchdog v4.1: 20 monitoring criteria
 """
 
-from .generator import ArchitectureGenerator, ArchitectureProposal
-from .trainer import ProxyTrainer, TrainingMetrics
-from .evaluator import MultiObjectiveEvaluator, EvaluationResult
-from .registry import ArchitectureRegistry, ArchitectureSnapshot
-from .adapters import LoRAAdapter, BaseAdapter, BottleneckAdapter
-from .mobile_agent import AdaptiveUIInterpreter, MobileAgentOrchestrator, UIElement, Action
-from .humanistic_controller import HumanisticController, MemoryManager, ContainmentPolicy
-from .storage import CompactConfigEncoder, ArchitectureCache
+from legion.neuro_architecture.generator import (
+    ArchitectureGenerator,
+    ArchitectureProposal
+)
+from legion.neuro_architecture.trainer import (
+    ProxyTrainer,
+    TrainingMetrics
+)
+from legion.neuro_architecture.evaluator import (
+    MultiObjectiveEvaluator,
+    EvaluationResult
+)
+from legion.neuro_architecture.registry import (
+    ArchitectureRegistry,
+    ArchitectureSnapshot
+)
+from legion.neuro_architecture.adapters import (
+    LoRAAdapter,
+    BottleneckAdapter
+)
+from legion.neuro_architecture.mobile_agent import (
+    AdaptiveUIInterpreter,
+    MobileAgentOrchestrator,
+    UIElement,
+    Action
+)
+from legion.neuro_architecture.humanistic_controller import (
+    HumanisticController,
+    MemoryManager,
+    ContainmentPolicy,
+    DecisionRecord
+)
+from legion.neuro_architecture.storage import (
+    CompactConfigEncoder,
+    ArchitectureCache
+)
+from legion.neuro_architecture.watchdog import (
+    PerformanceWatchdog,
+    HealthCheckResult,
+    MetricThreshold
+)
 
-__version__ = "4.0.0"
+# v4.1.0 new imports
+from legion.neuro_architecture.neuro_learning_loop import (
+    NeuroLearningLoop,
+    MetricsSnapshot,
+    Issue,
+    ImprovementPatch
+)
+from legion.neuro_architecture.self_improver import (
+    SelfImprover,
+    CodeMetrics,
+    CodePatch
+)
+
 __all__ = [
-    # Core components
-    "ArchitectureGenerator",
-    "ArchitectureProposal",
-    "ProxyTrainer",
-    "TrainingMetrics",
-    "MultiObjectiveEvaluator",
-    "EvaluationResult",
-    "ArchitectureRegistry",
-    "ArchitectureSnapshot",
-    
-    # Adapters
-    "LoRAAdapter",
-    "BaseAdapter",
-    "BottleneckAdapter",
-    
-    # Mobile Agent (DroidRun-style)
-    "AdaptiveUIInterpreter",
-    "MobileAgentOrchestrator",
-    "UIElement",
-    "Action",
-    
-    # Humanistic Controller (Microsoft AI)
-    "HumanisticController",
-    "MemoryManager",
-    "ContainmentPolicy",
-    
-    # Storage optimization
-    "CompactConfigEncoder",
-    "ArchitectureCache",
+    # v4.0.0
+    'ArchitectureGenerator',
+    'ArchitectureProposal',
+    'ProxyTrainer',
+    'TrainingMetrics',
+    'MultiObjectiveEvaluator',
+    'EvaluationResult',
+    'ArchitectureRegistry',
+    'ArchitectureSnapshot',
+    'LoRAAdapter',
+    'BottleneckAdapter',
+    'AdaptiveUIInterpreter',
+    'MobileAgentOrchestrator',
+    'UIElement',
+    'Action',
+    'HumanisticController',
+    'MemoryManager',
+    'ContainmentPolicy',
+    'DecisionRecord',
+    'CompactConfigEncoder',
+    'ArchitectureCache',
+    'PerformanceWatchdog',
+    'HealthCheckResult',
+    'MetricThreshold',
+    # v4.1.0
+    'NeuroLearningLoop',
+    'MetricsSnapshot',
+    'Issue',
+    'ImprovementPatch',
+    'SelfImprover',
+    'CodeMetrics',
+    'CodePatch',
 ]
+
+__version__ = '4.1.0'

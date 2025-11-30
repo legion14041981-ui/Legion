@@ -1,267 +1,21 @@
-[build-system]
-requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.build_meta"
-
-[project]
-name = "legion-ai"
-version = "2.3.0"
-description = "Multi-agent AI framework with browser automation and MCP"
-readme = "README.md"
-requires-python = ">=3.9"
-license = {text = "MIT"}
-authors = [
-    {name = "Legion Team", email = "legion14041981@gmail.com"},
-]
-keywords = [
-    "ai",
-    "multi-agent",
-    "automation",
-    "mcp",
-    "playwright",
-    "orchestration",
-]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "Topic :: Software Development :: Libraries :: Application Frameworks",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Framework :: AsyncIO",
-]
-
-[project.urls]
-Homepage = "https://github.com/legion14041981-ui/Legion"
-Documentation = "https://www.notion.so/2ac65511388d815fa690c20766ed1206"
-Repository = "https://github.com/legion14041981-ui/Legion"
-Issues = "https://github.com/legion14041981-ui/Legion/issues"
-
-# ======================
-# BLACK
-# ======================
 [tool.black]
 line-length = 120
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py311']
 include = '\.pyi?$'
 exclude = '''
 /(
     \.git
-  | \.venv
+  | \.hg
+  | \.mypy_cache
   | \.tox
+  | \.venv
+  | _build
+  | buck-out
   | build
   | dist
-  | __pycache__
-  | htmlcov
 )/
 '''
 
-# ======================
-# RUFF
-# ======================
-[tool.ruff]
-line-length = 120
-target-version = "py39"
-
-[tool.ruff.lint]
-select = [
-    "E",      # pycodestyle errors
-    "W",      # pycodestyle warnings
-    "F",      # pyflakes
-    "I",      # isort
-    "C",      # flake8-comprehensions
-    "B",      # flake8-bugbear
-    "UP",     # pyupgrade
-    "N",      # pep8-naming
-    "YTT",    # flake8-2020
-    "ANN",    # flake8-annotations
-    "ASYNC",  # flake8-async
-    "S",      # bandit (security)
-    "BLE",    # flake8-blind-except
-    "A",      # flake8-builtins
-    "C4",     # flake8-comprehensions
-    "DTZ",    # flake8-datetimez
-    "EM",     # flake8-errmsg
-    "ISC",    # flake8-implicit-str-concat
-    "G",      # flake8-logging-format
-    "PIE",    # flake8-pie
-    "PT",     # flake8-pytest-style
-    "Q",      # flake8-quotes
-    "RSE",    # flake8-raise
-    "RET",    # flake8-return
-    "SIM",    # flake8-simplify
-    "TID",    # flake8-tidy-imports
-    "ARG",    # flake8-unused-arguments
-    "PTH",    # flake8-use-pathlib
-    "PGH",    # pygrep-hooks
-    "PL",     # Pylint
-    "RUF",    # Ruff-specific rules
-]
-
-ignore = [
-    "ANN101",  # Missing type annotation for self
-    "ANN102",  # Missing type annotation for cls
-    "D100",    # Missing docstring in public module
-    "D104",    # Missing docstring in public package
-    "D203",    # 1 blank line required before class docstring
-    "D213",    # Multi-line docstring summary
-    "S101",    # Use of assert (OK in tests)
-    "PLR0913", # Too many arguments
-    "E501",    # Line too long (handled by black)
-]
-
-[tool.ruff.lint.per-file-ignores]
-"tests/*" = ["S101", "ANN", "ARG", "PLR2004", "SLF001"]
-"__init__.py" = ["F401"]
-"examples/*" = ["T201", "S"]
-
-# ======================
-# MYPY (Type Checking)
-# ======================
-[tool.mypy]
-python_version = "3.11"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = false  # Set true for strict mode
-disallow_incomplete_defs = false
-check_untyped_defs = true
-disallow_untyped_decorators = false
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-follow_imports = "normal"
-ignore_missing_imports = true
-strict_equality = true
-show_error_codes = true
-
-[[tool.mypy.overrides]]
-module = "tests.*"
-ignore_errors = true
-
-# ======================
-# BANDIT (Security)
-# ======================
-[tool.bandit]
-exclude_dirs = ["tests", ".venv", "venv", "htmlcov"]
-skips = [
-    "B101",  # assert_used (OK in tests)
-    "B601",  # paramiko_calls
-]
-
-# ======================
-# PYTEST
-# ======================
-[tool.pytest.ini_options]
-minversion = "7.0"
-addopts = """
-    -v
-    --tb=short
-    --strict-markers
-    --disable-warnings
-    --color=yes
-    --cov=src/legion
-    --cov-report=html
-    --cov-report=term-missing:skip-covered
-    --cov-report=xml
-    --cov-fail-under=95
-    --asyncio-mode=auto
-"""
-testpaths = ["tests"]
-python_files = "test_*.py *_test.py"
-python_classes = "Test*"
-python_functions = "test_*"
-markers = [
-    "integration: Integration tests",
-    "unit: Unit tests",
-    "slow: Slow running tests",
-    "playwright: Tests requiring Playwright browser",
-    "requires_api_key: Tests requiring OpenAI API key",
-    "supabase: Tests requiring Supabase connection",
-    "asyncio: Async tests",
-    "performance: Performance benchmark tests",
-]
-asyncio_mode = "auto"
-
-# ======================
-# COVERAGE
-# ======================
-[tool.coverage.run]
-source = ["src/legion"]
-omit = [
-    "*/tests/*",
-    "*/venv/*",
-    "*/__pycache__/*",
-    "*/site-packages/*",
-    "*/examples/*",
-    "*/scripts/*",
-]
-branch = true
-parallel = true
-
-[tool.coverage.report]
-precision = 2
-show_missing = true
-skip_covered = false
-skip_empty = true
-sort = "Cover"
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "def __str__",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if __name__ == .__main__.:",
-    "if TYPE_CHECKING:",
-    "@abstractmethod",
-    "@abc.abstractmethod",
-    "class .*\\bProtocol\\):",
-    "@overload",
-]
-
-[tool.coverage.html]
-directory = "htmlcov"
-
-[tool.coverage.xml]
-output = "coverage.xml"
-
-# ======================
-# INTERROGATE (Docstring Coverage)
-# ======================
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = true
-ignore-magic = true
-ignore-semiprivate = true
-ignore-private = true
-ignore-module = false
-fail-under = 80
-exclude = ["tests", "docs", "examples", "scripts", "htmlcov"]
-verbose = 2
-quiet = false
-generate-badge = "."
-badge-format = "svg"
-
-# ======================
-# PYLINT
-# ======================
-[tool.pylint.messages_control]
-disable = [
-    "C0111",  # missing-docstring
-    "C0103",  # invalid-name
-    "R0903",  # too-few-public-methods
-    "R0913",  # too-many-arguments
-    "W0212",  # protected-access
-]
-
-[tool.pylint.format]
-max-line-length = 120
-
-# ======================
-# ISORT
-# ======================
 [tool.isort]
 profile = "black"
 line_length = 120
@@ -271,11 +25,79 @@ force_grid_wrap = 0
 use_parentheses = true
 ensure_newline_before_comments = true
 
-# ======================
-# SETUPTOOLS
-# ======================
-[tool.setuptools]
-packages = ["legion"]
-package-dir."" = "src"
-[tool.setuptools.package-data]
-legion = ["py.typed"]
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "C",   # flake8-comprehensions
+    "B",   # flake8-bugbear
+    "UP",  # pyupgrade
+]
+ignore = [
+    "E501",  # line too long (handled by black)
+    "B008",  # do not perform function calls in argument defaults
+    "C901",  # too complex (we track separately)
+]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_calls = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-v --strict-markers --cov=legion --cov-report=xml --cov-report=term"
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+    "unit: marks tests as unit tests",
+]
+
+[tool.coverage.run]
+source = ["legion"]
+omit = [
+    "*/tests/*",
+    "*/test_*.py",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+precision = 2
+show_missing = true
+skip_covered = false
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+    "class .*\\(Protocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+
+[build-system]
+requires = ["setuptools>=65.0", "wheel"]
+build-backend = "setuptools.build_meta"

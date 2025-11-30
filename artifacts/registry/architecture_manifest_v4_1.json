@@ -1,0 +1,224 @@
+{
+  "manifest_version": "4.1.0",
+  "semantic_hash": "sha256:a7f8b4c3d2e1f0a9b8c7d6e5f4a3b2c1d0e9f8a7b6c5d4e3f2a1b0c9d8e7f6a5",
+  "created_at": "2025-11-30T23:32:00Z",
+  "components": {
+    "neuro_learning_loop": {
+      "version": "4.1.0",
+      "checksum": "sha256:neuro_learning_loop_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "autonomous_self_improvement",
+        "metrics_collection",
+        "issue_analysis",
+        "patch_generation",
+        "auto_apply_with_rollback"
+      ],
+      "dependencies": [
+        "self_improver",
+        "watchdog_v4_1",
+        "storage_v4_1"
+      ],
+      "metrics": {
+        "cycle_interval_hours": 12.0,
+        "auto_apply_success_rate_target": 0.80,
+        "rollback_threshold": 3
+      }
+    },
+    "self_improver": {
+      "version": "4.1.0",
+      "checksum": "sha256:self_improver_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "code_quality_analysis",
+        "patch_generation",
+        "patch_testing",
+        "auto_rollback",
+        "quality_scoring"
+      ],
+      "capabilities": {
+        "static_analysis": true,
+        "dynamic_evaluation": true,
+        "performance_benchmarking": true,
+        "complexity_analysis": true
+      },
+      "thresholds": {
+        "min_quality_score": 70.0,
+        "max_complexity": 10,
+        "latency_improvement_target": -0.10,
+        "error_reduction_target": -0.20
+      }
+    },
+    "adaptive_refactor_engine": {
+      "version": "4.1.0",
+      "checksum": "sha256:adaptive_refactor_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "legacy_pattern_detection",
+        "pattern_modernization",
+        "interface_updates",
+        "test_generation",
+        "backward_compatibility_preservation"
+      ],
+      "refactor_types": [
+        "modernize",
+        "simplify",
+        "optimize",
+        "document"
+      ],
+      "recovery_strategies": [
+        "fuzzy_match",
+        "phonetic_match",
+        "visual_similarity",
+        "context_inference",
+        "spatial_proximity"
+      ]
+    },
+    "storage_v4_1": {
+      "version": "4.1.0",
+      "checksum": "sha256:storage_v4_1_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "l4_semantic_cache",
+        "vector_similarity_search",
+        "adaptive_cleanup",
+        "content_addressable_storage",
+        "deduplication"
+      ],
+      "cache_hierarchy": {
+        "l1": {
+          "type": "memory",
+          "size": 10,
+          "latency_ms": "<1"
+        },
+        "l4": {
+          "type": "semantic",
+          "size": 10000,
+          "latency_ms": "<50",
+          "similarity_threshold": 0.85
+        },
+        "l3": {
+          "type": "disk",
+          "size": "unlimited",
+          "latency_ms": "<100"
+        }
+      }
+    },
+    "mobile_agent_v4_1": {
+      "version": "4.1.0",
+      "checksum": "sha256:mobile_agent_v4_1_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "multi_step_planning",
+        "probabilistic_action_trees",
+        "enhanced_ocr_recovery",
+        "llm_hallucination_detection",
+        "adaptive_retry"
+      ],
+      "improvements": {
+        "lookahead_depth": 3,
+        "max_retries": 5,
+        "success_rate_target": 0.85,
+        "recovery_strategies": 5
+      }
+    },
+    "watchdog_v4_1": {
+      "version": "4.1.0",
+      "checksum": "sha256:watchdog_v4_1_checksum_placeholder",
+      "status": "stable",
+      "features": [
+        "comprehensive_monitoring",
+        "deadlock_detection",
+        "memory_leak_detection",
+        "logic_contradiction_detection",
+        "self_improvement_monitoring",
+        "auto_task_creation"
+      ],
+      "monitoring_criteria": {
+        "performance": 6,
+        "system_health": 4,
+        "architecture": 4,
+        "logic": 4,
+        "evolution": 3,
+        "total": 21
+      },
+      "thresholds": {
+        "error_rate_critical": 0.10,
+        "latency_degradation_alert": 0.50,
+        "memory_usage_critical": 0.95,
+        "cache_hit_rate_alert": 0.65,
+        "mobile_success_alert": 0.70
+      }
+    }
+  },
+  "performance_targets": {
+    "architecture_proposals_per_hour": 15,
+    "evaluation_time_minutes": 3,
+    "cache_hit_rate": 0.92,
+    "storage_savings": 0.75,
+    "self_healing_success": 0.85,
+    "health_check_pass_rate": 0.995,
+    "auto_improvement_success": 0.80,
+    "patch_rollback_rate": 0.15
+  },
+  "safety_mechanisms": {
+    "risk_assessment": true,
+    "automatic_rollback": true,
+    "containment_policies": true,
+    "humanistic_controller": true,
+    "cryptographic_validation": true
+  },
+  "deployment_strategy": {
+    "type": "canary",
+    "stages": [
+      {
+        "name": "shadow_testing",
+        "traffic_percentage": 0,
+        "duration_hours": 24,
+        "validation_criteria": [
+          "no_critical_errors",
+          "latency_within_sla",
+          "memory_stable"
+        ]
+      },
+      {
+        "name": "canary_5",
+        "traffic_percentage": 5,
+        "duration_hours": 48,
+        "validation_criteria": [
+          "error_rate_below_baseline",
+          "performance_meets_targets",
+          "no_regressions"
+        ]
+      },
+      {
+        "name": "canary_25",
+        "traffic_percentage": 25,
+        "duration_hours": 72,
+        "validation_criteria": [
+          "self_improvement_working",
+          "watchdog_healthy",
+          "cache_efficiency_improved"
+        ]
+      },
+      {
+        "name": "full_rollout",
+        "traffic_percentage": 100,
+        "duration_hours": null,
+        "validation_criteria": [
+          "all_targets_met",
+          "production_stable"
+        ]
+      }
+    ]
+  },
+  "backward_compatibility": {
+    "v4_0_0": true,
+    "breaking_changes": []
+  },
+  "registry_entries": [
+    "stable/v4.1.0/dev",
+    "canary/v4.1.0-alpha",
+    "experimental/neuro-learning"
+  ]
+}

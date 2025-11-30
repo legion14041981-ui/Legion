@@ -31,8 +31,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from legion.neuro_architecture.adaptive_refactor_engine import (
-    AdaptiveRefactorEngine,
-    RefactorProposal
+    AdaptiveRefactorEngine
 )
 from legion.neuro_architecture.storage_v4_1 import (
     L4SemanticCache,

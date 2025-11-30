@@ -14,7 +14,7 @@ Target: 66% → 85% success rate
 
 import logging
 from dataclasses import dataclass, field
-from typing import Dict, List, Any, Optional, Tuple
+from typing import Dict, List, Any, Optional
 import time
 import random
 

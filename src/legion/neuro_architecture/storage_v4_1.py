@@ -9,7 +9,6 @@ Storage System v4.1.0 - Enhanced with L4 Semantic Cache.
 - Deduplication
 """
 
-import hashlib
 import logging
 import time
 from dataclasses import dataclass, field

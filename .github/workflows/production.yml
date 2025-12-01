@@ -145,9 +145,8 @@ jobs:
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
             type=sha
-      
-      - name: Build and push
-        uses: docker/build-push-action@v5
+    - name: Build and push
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile.os

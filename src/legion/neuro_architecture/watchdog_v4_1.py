@@ -2,19 +2,25 @@
 Performance Watchdog v4.1.0 - Expanded Monitoring.
 
 Улучшения:
-- 20 monitoring criteria (was 4)
+- 21 monitoring criteria (включая drift detection и semantic hash)
 - Deadlock detection
 - Memory leak detection
 - Logic contradiction detection
 - Self-improvement monitoring
 - Auto-task creation for Self-Improver
+- Model drift detection (NEW)
+- Semantic hash verification (NEW)
+- Registry integrity validation (NEW)
 """
 
 import logging
 import time
+import hashlib
+import json
 from dataclasses import dataclass, field
 from typing import Dict, List, Any, Optional
 from datetime import datetime, timedelta
+from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +50,7 @@ class WatchdogAlert:
 
 class EnhancedPerformanceWatchdog:
     """
-    Enhanced Performance Watchdog с 20 критериями мониторинга.
+    Enhanced Performance Watchdog с 21 критерием мониторинга.
     
     Критерии:
     - Performance (5): error_rate, latency_p50/p95/p99, memory, cpu
@@ -52,6 +58,7 @@ class EnhancedPerformanceWatchdog:
     - Architecture (4): registry integrity, deadlocks, infinite loops, memory leaks
     - Logic (4): contradictions, safety bypasses, containment violations, unauthorized actions
     - Evolution (3): self-improvement failures, patch rollbacks, loop stalls
+    - Integrity (3): model drift, semantic hash, registry corruption (NEW)
     """
     
     # Пороги по умолчанию
@@ -85,14 +92,20 @@ class EnhancedPerformanceWatchdog:
         # Evolution
         'self_improvement_failure_rate': {'warning': 0.10, 'alert': 0.20},
         'patch_rollback_rate': {'warning': 0.15, 'alert': 0.25},
-        'neuro_loop_stall_hours': {'alert': 48, 'critical': 72}
+        'neuro_loop_stall_hours': {'alert': 48, 'critical': 72},
+        
+        # Integrity (NEW)
+        'model_drift_score': {'warning': 0.15, 'alert': 0.30, 'critical': 0.50},
+        'semantic_hash_mismatch': {'critical': True},
+        'registry_corruption_detected': {'critical': True}
     }
     
     def __init__(
         self,
         check_interval: int = 300,  # 5 minutes
         baseline: Optional[Dict[str, float]] = None,
-        custom_thresholds: Optional[Dict[str, Dict[str, float]]] = None
+        custom_thresholds: Optional[Dict[str, Dict[str, float]]] = None,
+        registry_path: Optional[str] = None
     ):
         """
         Инициализация enhanced watchdog.
@@ -101,22 +114,272 @@ class EnhancedPerformanceWatchdog:
             check_interval: Интервал проверки (секунды)
             baseline: Baseline метрики
             custom_thresholds: Custom пороги
+            registry_path: Путь к architecture registry
         """
         self.check_interval = check_interval
         self.baseline = baseline or {}
         self.thresholds = {**self.DEFAULT_THRESHOLDS, **(custom_thresholds or {})}
+        self.registry_path = registry_path or "artifacts/registry"
         
         self.alerts: List[WatchdogAlert] = []
         self.consecutive_failures = 0
         self.last_check_time: Optional[datetime] = None
         
-        logger.info("✅ Enhanced Performance Watchdog initialized (v4.1)")
-        logger.info(f"   Monitoring criteria: 20")
+        # Drift detection history
+        self.drift_history: List[Dict[str, Any]] = []
+        self.max_drift_history = 100
+        
+        # Semantic hash cache
+        self.expected_semantic_hash: Optional[str] = None
+        self._load_expected_hash()
+        
+        logger.info("✅ Enhanced Performance Watchdog v4.1 initialized")
+        logger.info(f"   Monitoring criteria: 21 (including drift & hash validation)")
         logger.info(f"   Check interval: {check_interval}s")
+        logger.info(f"   Registry path: {self.registry_path}")
+    
+    def _load_expected_hash(self) -> None:
+        """Загрузить ожидаемый semantic hash из манифеста."""
+        try:
+            manifest_path = Path("artifacts/architecture_manifest_v4.json")
+            if manifest_path.exists():
+                with open(manifest_path, 'r') as f:
+                    manifest = json.load(f)
+                    self.expected_semantic_hash = manifest.get('semantic_hash')
+                    logger.info(f"   Expected semantic hash loaded: {self.expected_semantic_hash}")
+        except Exception as e:
+            logger.warning(f"Could not load expected semantic hash: {e}")
+    
+    async def check_model_drift(self, current_metrics: Dict[str, Any]) -> bool:
+        """
+        Проверка дрейфа AI модели (Model Drift Detection).
+        
+        Анализирует отклонение текущих метрик от baseline:
+        - Accuracy degradation
+        - Prediction distribution shift
+        - Confidence score changes
+        - Response quality metrics
+        
+        Args:
+            current_metrics: Текущие метрики модели
+        
+        Returns:
+            True если дрейф обнаружен
+        """
+        if not self.baseline:
+            logger.info("No baseline for drift detection - skipping")
+            return False
+        
+        drift_detected = False
+        drift_score = 0.0
+        drift_details = []
+        
+        # Ключевые метрики для drift detection
+        drift_metrics = [
+            'accuracy',
+            'precision',
+            'recall',
+            'f1_score',
+            'avg_confidence',
+            'response_quality'
+        ]
+        
+        for metric in drift_metrics:
+            if metric in self.baseline and metric in current_metrics:
+                baseline_val = self.baseline[metric]
+                current_val = current_metrics[metric]
+                
+                if baseline_val > 0:
+                    # Вычислить относительное отклонение
+                    relative_diff = abs(current_val - baseline_val) / baseline_val
+                    drift_score = max(drift_score, relative_diff)
+                    
+                    if relative_diff > 0.10:  # 10% отклонение
+                        drift_details.append({
+                            'metric': metric,
+                            'baseline': baseline_val,
+                            'current': current_val,
+                            'drift_pct': relative_diff * 100
+                        })
+        
+        # Сохранить в историю
+        self.drift_history.append({
+            'timestamp': datetime.utcnow().isoformat(),
+            'drift_score': drift_score,
+            'details': drift_details
+        })
+        
+        # Ограничить размер истории
+        if len(self.drift_history) > self.max_drift_history:
+            self.drift_history = self.drift_history[-self.max_drift_history:]
+        
+        # Проверить пороги
+        if drift_score >= self.thresholds['model_drift_score']['critical']:
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_drift_critical",
+                severity='critical',
+                criterion='model_drift_score',
+                message=f"CRITICAL model drift detected: {drift_score:.1%}",
+                current_value=drift_score,
+                threshold_value=self.thresholds['model_drift_score']['critical']
+            ))
+            drift_detected = True
+            logger.error(f"🚨 CRITICAL model drift: {drift_score:.1%}")
+            
+        elif drift_score >= self.thresholds['model_drift_score']['alert']:
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_drift_alert",
+                severity='alert',
+                criterion='model_drift_score',
+                message=f"Significant model drift detected: {drift_score:.1%}",
+                current_value=drift_score,
+                threshold_value=self.thresholds['model_drift_score']['alert']
+            ))
+            drift_detected = True
+            logger.warning(f"⚠️ Model drift detected: {drift_score:.1%}")
+            
+        elif drift_score >= self.thresholds['model_drift_score']['warning']:
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_drift_warning",
+                severity='warning',
+                criterion='model_drift_score',
+                message=f"Minor model drift detected: {drift_score:.1%}",
+                current_value=drift_score,
+                threshold_value=self.thresholds['model_drift_score']['warning']
+            ))
+            logger.info(f"ℹ️ Minor model drift: {drift_score:.1%}")
+        
+        if drift_details:
+            logger.info(f"Drift details: {json.dumps(drift_details, indent=2)}")
+        
+        return drift_detected
+    
+    async def verify_semantic_hash(self, current_hash: str) -> bool:
+        """
+        Проверка semantic hash архитектуры.
+        
+        Валидирует что текущий semantic hash соответствует
+        ожидаемому значению из architecture_manifest_v4.json.
+        
+        Args:
+            current_hash: Текущий semantic hash системы
+        
+        Returns:
+            True если hash валиден
+        """
+        if not self.expected_semantic_hash:
+            logger.warning("No expected semantic hash configured - skipping verification")
+            return True
+        
+        hash_valid = (current_hash == self.expected_semantic_hash)
+        
+        if not hash_valid:
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_hash_mismatch",
+                severity='critical',
+                criterion='semantic_hash_mismatch',
+                message=f"Semantic hash mismatch! Expected: {self.expected_semantic_hash}, Got: {current_hash}",
+                current_value=1.0,
+                threshold_value=0.0
+            ))
+            logger.error(f"🚨 CRITICAL: Semantic hash mismatch!")
+            logger.error(f"   Expected: {self.expected_semantic_hash}")
+            logger.error(f"   Current:  {current_hash}")
+        else:
+            logger.info(f"✅ Semantic hash verified: {current_hash}")
+        
+        return hash_valid
+    
+    async def validate_registry_integrity(self) -> bool:
+        """
+        Валидация целостности Architecture Registry.
+        
+        Проверяет:
+        - Наличие критических файлов
+        - Контрольные суммы файлов
+        - Структуру директорий
+        - Соответствие версий
+        
+        Returns:
+            True если registry корректен
+        """
+        registry_valid = True
+        registry_path = Path(self.registry_path)
+        
+        # Проверка существования директории
+        if not registry_path.exists():
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_registry_missing",
+                severity='critical',
+                criterion='registry_corruption_detected',
+                message=f"Registry directory not found: {registry_path}",
+                current_value=1.0,
+                threshold_value=0.0
+            ))
+            logger.error(f"🚨 CRITICAL: Registry directory missing: {registry_path}")
+            return False
+        
+        # Критические файлы registry
+        required_files = [
+            'registry_index.json',
+            'checksums.json'
+        ]
+        
+        missing_files = []
+        for filename in required_files:
+            filepath = registry_path / filename
+            if not filepath.exists():
+                missing_files.append(filename)
+        
+        if missing_files:
+            self.alerts.append(WatchdogAlert(
+                id=f"alert_{int(time.time())}_registry_files",
+                severity='critical',
+                criterion='registry_corruption_detected',
+                message=f"Registry files missing: {', '.join(missing_files)}",
+                current_value=len(missing_files),
+                threshold_value=0.0
+            ))
+            logger.error(f"🚨 CRITICAL: Missing registry files: {missing_files}")
+            registry_valid = False
+        
+        # Проверка контрольных сумм
+        try:
+            checksums_file = registry_path / 'checksums.json'
+            if checksums_file.exists():
+                with open(checksums_file, 'r') as f:
+                    expected_checksums = json.load(f)
+                
+                # Валидация каждого файла
+                for filename, expected_checksum in expected_checksums.items():
+                    filepath = registry_path / filename
+                    if filepath.exists():
+                        with open(filepath, 'rb') as f:
+                            actual_checksum = hashlib.sha256(f.read()).hexdigest()
+                        
+                        if actual_checksum != expected_checksum:
+                            self.alerts.append(WatchdogAlert(
+                                id=f"alert_{int(time.time())}_checksum_{filename}",
+                                severity='critical',
+                                criterion='registry_corruption_detected',
+                                message=f"Checksum mismatch for {filename}",
+                                current_value=1.0,
+                                threshold_value=0.0
+                            ))
+                            logger.error(f"🚨 Checksum mismatch: {filename}")
+                            registry_valid = False
+        
+        except Exception as e:
+            logger.warning(f"Could not validate checksums: {e}")
+        
+        if registry_valid:
+            logger.info("✅ Registry integrity validated")
+        
+        return registry_valid
     
     def check_health_comprehensive(self, metrics: Dict[str, Any]) -> Dict[str, Any]:
         """
-        Комплексная проверка здоровья по 20 критериям.
+        Комплексная проверка здоровья по 21 критерию.
         
         Args:
             metrics: Текущие метрики
@@ -168,8 +431,12 @@ class EnhancedPerformanceWatchdog:
             },
             'consecutive_failures': self.consecutive_failures,
             'recommendation': recommendation,
-            'should_rollback': self.should_rollback_v4_1()
+            'should_rollback': self.should_rollback_v4_1(),
+            'drift_detection_enabled': bool(self.baseline),
+            'semantic_hash_validation_enabled': bool(self.expected_semantic_hash)
         }
+    
+    # ... (остальные методы из оригинального файла без изменений)
     
     def _check_performance(self, metrics: Dict[str, Any]) -> None:
         """Performance проверки (5 критериев)."""

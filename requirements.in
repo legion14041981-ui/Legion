@@ -13,7 +13,7 @@ google-auth-oauthlib
 google-auth-httplib2
 
 # Browser automation
-playwright==1.45.0
+playwright==1.56.0
 
 # AI integration
 openai>=1.0.0

@@ -1,72 +1,122 @@
 # Security Policy
 
-## Reporting a Vulnerability
-
-The Legion project team is committed to addressing security vulnerabilities promptly and responsibly. If you discover a security vulnerability, please report it using one of the following methods:
-
-### Responsible Disclosure
-
-To report a security vulnerability responsibly:
-
-1. **DO NOT** create a public GitHub issue for the vulnerability
-2. Email the security team with details at: **security-report@legion.dev**
-3. Include the following information:
-   - Description of the vulnerability
-   - Steps to reproduce
-   - Potential impact
-   - Suggested fix (if available)
-
-### Response Timeline
-
-We commit to:
-- Acknowledging vulnerability reports within 48 hours
-- Providing initial assessment within 1 week
-- Releasing a security patch within 2 weeks (or explaining timeline)
-- Crediting the researcher (if desired)
-
 ## Supported Versions
 
-Security updates are provided for:
+Мы поддерживаем следующие версии Legion Framework с security updates:
 
-| Version | Supported          | EOL Date       |
-|---------|--------------------|----------------|
-| 2.2.x   | ✅ Yes             | TBD            |
-| 2.1.x   | ⚠️ Limited         | 3 months       |
-| < 2.1   | ❌ No              | Immediate      |
+| Version | Supported          |
+| ------- | ------------------ |
+| 2.3.x   | :white_check_mark: |
+| 2.2.x   | :white_check_mark: |
+| 2.1.x   | :x:                |
+| < 2.0   | :x:                |
 
-## Security Best Practices
+## Reporting a Vulnerability
+
+**НЕ создавайте публичные GitHub issues для security vulnerabilities.**
+
+### Процесс сообщения
+
+1. **Email**: Отправьте детали на legion14041981@gmail.com
+2. **Включите**:
+   - Описание уязвимости
+   - Шаги для воспроизведения
+   - Потенциальное влияние
+   - Предлагаемое решение (если есть)
+
+3. **Response Time**:
+   - Подтверждение получения: в течение 48 часов
+   - Первоначальная оценка: в течение 5 рабочих дней
+   - Fix и disclosure: зависит от серьезности
+
+### Severity Levels
+
+- **Critical**: Немедленное исправление, emergency release
+- **High**: Исправление в течение 7 дней
+- **Medium**: Исправление в следующем minor release
+- **Low**: Исправление в следующем major release
+
+## Security Measures
+
+### Implemented
+
+- ✅ **Package Whitelist**: Валидация установки dependencies
+- ✅ **Input Validation**: Проверка всех внешних данных
+- ✅ **Subprocess Security**: Защита от injection attacks
+- ✅ **Dependabot**: Автоматическое обновление зависимостей
+- ✅ **Security Scanning**: Bandit, Safety, pip-audit в CI
+
+### Planned
+
+- 🔄 **Secret Scanning**: GitHub Secret Scanning
+- 🔄 **CodeQL Analysis**: Advanced security analysis
+- 🔄 **SBOM**: Software Bill of Materials generation
+- 🔄 **Signed Releases**: GPG signing for releases
+
+## Best Practices
 
 ### For Users
-- Keep Legion updated to the latest version
-- Review environment variables and configuration
-- Use strong, unique credentials for database connections
-- Enable branch protection on production deployments
-- Monitor logs for suspicious activity
+
+1. **Always use latest version**
+2. **Review Dependabot PRs promptly**
+3. **Use environment variables** for secrets
+4. **Enable 2FA** on GitHub account
+5. **Review security advisories** regularly
 
 ### For Contributors
-- Never commit sensitive credentials or API keys
-- Use environment variables for all sensitive data
-- Review security implications before submitting PRs
-- Follow OWASP guidelines for authentication and authorization
-- Use type hints and input validation
 
-## Security Scanning
+1. **Never commit secrets** or credentials
+2. **Use pre-commit hooks** for security checks
+3. **Follow secure coding guidelines**
+4. **Add tests** for security-related code
+5. **Document security considerations**
 
-The Legion project implements:
-- Automated dependency scanning
-- Static application security testing (SAST)
-- Branch protection and code review requirements
-- Regular security audits
+## Security Checklist
 
-## Known Issues
+Перед каждым release:
 
-No known security issues at this time.
+- [ ] Все dependencies обновлены
+- [ ] Security scan пройден
+- [ ] No known vulnerabilities
+- [ ] Tests покрывают security scenarios
+- [ ] Documentation обновлена
+- [ ] CHANGELOG включает security fixes
 
-## Acknowledgments
+## Disclosure Policy
 
-We appreciate the security research community's efforts to keep Legion secure.
+### Coordinated Disclosure
+
+1. **Private notification** для maintainers
+2. **Fix development** в private branch
+3. **Public disclosure** после fix release
+4. **Credit** для reporter (если желает)
+
+### Public Disclosure Timeline
+
+- **Critical**: После emergency release
+- **High**: 7 дней после fix release
+- **Medium**: 14 дней после fix release
+- **Low**: 30 дней после fix release
+
+## Security Updates
+
+Подпишитесь на security updates:
+
+- **GitHub**: Watch repository → Custom → Security alerts
+- **RSS**: Subscribe to [releases feed](https://github.com/legion14041981-ui/Legion/releases.atom)
+
+## Hall of Fame
+
+Мы благодарим security researchers, которые помогли улучшить Legion:
+
+<!-- List will be populated as reports come in -->
+
+## Contact
+
+Для вопросов по security:
+- Email: legion14041981@gmail.com
+- PGP Key: [Available on request]
 
 ---
 
-*Last Updated: 2024*
-*For questions, contact: security@legion.dev*
+**Последнее обновление**: 2025-12-02

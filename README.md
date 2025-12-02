@@ -1,272 +1,211 @@
-# LEGION AI System v4.0.0 🚀
+# 🛡️ Legion Framework
 
-**Multi-Agent AI Framework with Autonomous Architecture Evolution**
+[![CI Pipeline](https://github.com/legion14041981-ui/Legion/actions/workflows/ci.yml/badge.svg)](https://github.com/legion14041981-ui/Legion/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/legion14041981-ui/Legion/branch/main/graph/badge.svg)](https://codecov.io/gh/legion14041981-ui/Legion)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-[![Version](https://img.shields.io/badge/version-4.0.0-blue.svg)](https://github.com/legion14041981-ui/Legion/releases/tag/v4.0.0)
-[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
-[![Python](https://img.shields.io/badge/python-3.11+-brightgreen.svg)](https://www.python.org/)
-[![Tests](https://img.shields.io/badge/tests-passing-success.svg)](tests/)
-[![Coverage](https://img.shields.io/badge/coverage-80%25%2B-success.svg)](tests/)
+**Legion** — мультиагентный фреймворк для диспетчеризации и координации виртуального легиона ИИ-агентов.
 
----
+## ✨ Особенности
 
-## 🎯 Overview
+- 🤖 **Интеллектуальная диспетчеризация задач** с routing на основе capabilities
+- ⚡ **Async/await поддержка** для неблокирующего выполнения
+- 🔒 **Безопасность** с whitelist validation и защитой от injection
+- 📊 **Мониторинг производительности** с автоматическим rollback
+- 🔄 **CI/CD integration** с автоматическим тестированием и проверкой качества
+- 🐳 **Docker support** для простого развертывания
+- 🧪 **80%+ test coverage** для надежности
+- 📝 **Comprehensive documentation** и примеры использования
 
-LEGION AI System — это передовой мультиагентный AI-фреймворк с автономной эволюцией архитектуры, криптографическими гарантиями, mobile automation, и humanistic AI principles.
+## 🚀 Быстрый старт
 
-**Ключевые возможности v4.0.0 "Neuro-Rewriter":**
-
-✅ **Autonomous Architecture Evolution**: NAS-lite генерация, proxy training, multi-objective evaluation  
-✅ **Mobile Agent (DroidRun-Style)**: Adaptive UI automation с self-healing  
-✅ **Humanistic AI Controller**: Safety gates, memory, containment policies (Microsoft AI principles)  
-✅ **Cryptographic Registry**: BIP32-style derivation, checksum validation, immutable storage  
-✅ **Storage Optimization**: MessagePack encoding (70% savings), L1/L2/L3 cache  
-✅ **Performance Watchdog**: Real-time monitoring, auto-rollback на degradation  
-✅ **Production CI/CD**: GitHub Actions pipeline с canary deployment  
-
----
-
-## 🚀 Quick Start
-
-### Installation
+### Установка
 
 ```bash
-# Clone repository
+# Клонирование репозитория
 git clone https://github.com/legion14041981-ui/Legion.git
 cd Legion
 
-# Install dependencies
+# Создание виртуального окружения
+python -m venv .venv
+source .venv/bin/activate  # Linux/Mac
+# или
+.venv\Scripts\activate  # Windows
+
+# Установка зависимостей
 pip install -r requirements.txt
-
-# Validate installation
-python tools/validate_deployment.py
 ```
 
-### Run Full Workflow
+### Базовое использование
+
+```python
+from legion.core import LegionCore
+from legion.base_agent import LegionAgent
+
+# Создание custom агента
+class MyAgent(LegionAgent):
+    def execute(self, task_data):
+        # Ваша логика
+        return {"status": "completed", "result": "success"}
+
+# Инициализация Legion
+core = LegionCore()
+
+# Регистрация агента с capabilities
+agent = MyAgent("my_agent")
+core.register_agent("my_agent", agent, capabilities=["processing", "analysis"])
+
+# Запуск системы
+core.start()
+
+# Диспетчеризация задачи
+task = {"type": "processing", "data": "sample"}
+result = core.dispatch_task("task_1", task, required_capability="processing")
+
+print(result)  # {"status": "completed", "result": "success"}
+
+# Остановка системы
+core.stop()
+```
+
+## 🐳 Docker
+
+### Быстрый запуск с Docker
 
 ```bash
-# Architecture evolution workflow
-python tools/orchestrator_cli.py workflow \
-  --task text_classification \
-  --n 10 \
-  --strategies "LoRA,MoE,Adapter" \
-  --mode standard
+# Сборка образа
+docker build -t legion-framework .
+
+# Запуск контейнера
+docker run -p 8000:8000 -e LEGION_OS_ENABLED=true legion-framework
+
+# Или с docker-compose
+docker-compose up -d
 ```
 
-### Mobile Agent
+### Docker Compose
+
+```yaml
+version: '3.8'
+services:
+  legion:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - LEGION_OS_ENABLED=true
+      - DATABASE_URL=postgresql://user:pass@db:5432/legion
+    depends_on:
+      - db
+  
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=legion
+      - POSTGRES_USER=user
+      - POSTGRES_PASSWORD=pass
+```
+
+## 📁 Структура проекта
+
+```
+Legion/
+├── src/legion/              # Основной код
+│   ├── core.py              # Ядро системы
+│   ├── base_agent.py        # Базовый класс агента
+│   ├── database.py          # Database integration
+│   ├── agents/              # Встроенные агенты
+│   │   └── ci_healer/       # CI/CD healing agents
+│   ├── neuro_architecture/  # Нейро-архитектура
+│   │   ├── registry.py      # Architecture registry
+│   │   └── watchdog.py      # Performance monitoring
+│   └── orchestration/       # Оркестрация агентов
+├── tests/                   # Тесты
+│   ├── unit/                # Unit tests
+│   ├── integration/         # Integration tests
+│   └── conftest.py          # Pytest fixtures
+├── docs/                    # Документация
+├── .github/workflows/       # CI/CD pipelines
+├── Dockerfile               # Docker configuration
+└── requirements.txt         # Dependencies
+```
+
+## 🧪 Тестирование
 
 ```bash
-# Natural language mobile automation
-python tools/orchestrator_cli.py mobile \
-  --goal "Open settings, enable dark mode"
+# Запуск всех тестов
+pytest
+
+# Запуск с coverage
+pytest --cov=src/legion --cov-report=html
+
+# Запуск только unit tests
+pytest tests/unit/
+
+# Запуск только integration tests
+pytest tests/integration/
 ```
 
-### Registry Management
+## 🔒 Безопасность
 
-```bash
-# List all architecture snapshots
-python tools/orchestrator_cli.py registry list
+- ✅ **Security scanning** с Bandit и Safety
+- ✅ **Package whitelist** для безопасной установки зависимостей
+- ✅ **Input validation** для всех внешних данных
+- ✅ **Dependabot** для автоматического обновления зависимостей
 
-# Get specific snapshot
-python tools/orchestrator_cli.py registry get <hash>
+Для сообщения о уязвимостях, см. [SECURITY.md](SECURITY.md)
 
-# Restore previous architecture
-python tools/orchestrator_cli.py registry restore <hash>
-```
+## 📊 CI/CD
 
----
+Проект использует GitHub Actions для автоматизации:
 
-## 📚 Architecture
+- **Тестирование** на Python 3.9, 3.10, 3.11
+- **Security scanning** (Bandit, Safety, pip-audit)
+- **Code quality** (Ruff, Pylint, MyPy)
+- **Coverage reporting** (Codecov)
+- **Docker builds** с автоматическим push
+- **Automated releases** при создании tags
 
-### Core Components
+## 📖 Документация
 
-```mermaid
-graph TB
-    subgraph "User Interface"
-        CLI[CLI Tools]
-        API[REST API]
-    end
-    
-    subgraph "Humanistic Controller"
-        HC[HumanisticController]
-        MEM[MemoryManager]
-        CP[ContainmentPolicy]
-    end
-    
-    subgraph "Core Pipeline"
-        GEN[ArchitectureGenerator]
-        TRAIN[ProxyTrainer]
-        EVAL[MultiObjectiveEvaluator]
-    end
-    
-    subgraph "Mobile Agent"
-        UI[AdaptiveUIInterpreter]
-        ORC[MobileAgentOrchestrator]
-    end
-    
-    subgraph "Storage & Registry"
-        REG[ArchitectureRegistry]
-        CACHE[L1/L2/L3 Cache]
-        ENC[MessagePack Encoder]
-    end
-    
-    subgraph "Monitoring"
-        WD[PerformanceWatchdog]
-    end
-    
-    CLI --> HC
-    API --> HC
-    HC --> GEN
-    HC --> MEM
-    HC --> CP
-    GEN --> TRAIN
-    TRAIN --> EVAL
-    EVAL --> REG
-    REG --> CACHE
-    CACHE --> ENC
-    HC --> UI
-    UI --> ORC
-    EVAL --> WD
-    
-    style HC fill:#FF6B6B
-    style REG fill:#FFA07A
-    style WD fill:#95E1D3
-```
+- [Installation Guide](docs/installation.md)
+- [Architecture Overview](docs/architecture.md)
+- [API Reference](docs/api/)
+- [Deployment Guide](docs/deployment.md)
+- [Contributing Guide](CONTRIBUTING.md)
+- [Troubleshooting](docs/troubleshooting.md)
 
-### Module Overview
+## 🤝 Участие в разработке
 
-| Module | Description | LOC | Status |
-|--------|-------------|-----|--------|
-| **ArchitectureGenerator** | NAS-lite с 5 стратегиями | 250 | ✅ |
-| **ProxyTrainer** | Быстрое обучение proxy-моделей | 120 | ✅ |
-| **MultiObjectiveEvaluator** | Pareto optimization | 180 | ✅ |
-| **ArchitectureRegistry** | Криптографический реестр | 280 | ✅ |
-| **AdaptiveUIInterpreter** | Mobile automation | 220 | ✅ |
-| **HumanisticController** | Safety gates + memory | 200 | ✅ |
-| **MemoryManager** | Context storage | 100 | ✅ |
-| **ContainmentPolicy** | Risk-based approval | 80 | ✅ |
-| **CompactConfigEncoder** | MessagePack encoding | 80 | ✅ |
-| **ArchitectureCache** | L1/L2/L3 cache | 150 | ✅ |
-| **PerformanceWatchdog** | Monitoring + rollback | 180 | ✅ |
+Мы приветствуем участие! См. [CONTRIBUTING.md](CONTRIBUTING.md) для деталей.
+
+### Быстрый гайд
+
+1. Fork репозитория
+2. Создайте feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit изменения (`git commit -m 'Add amazing feature'`)
+4. Push в branch (`git push origin feature/amazing-feature`)
+5. Откройте Pull Request
+
+## 📝 Changelog
+
+См. [CHANGELOG.md](CHANGELOG.md) для истории изменений.
+
+## 📄 Лицензия
+
+Этот проект распространяется под лицензией MIT. См. [LICENSE](LICENSE) для деталей.
+
+## 🙏 Благодарности
+
+- Все contributors проекта
+- Open source community за amazing tools
+
+## 📞 Контакты
+
+- GitHub: [@legion14041981-ui](https://github.com/legion14041981-ui)
+- Issues: [GitHub Issues](https://github.com/legion14041981-ui/Legion/issues)
 
 ---
 
-## 📊 Performance Metrics
-
-| Metric | Baseline | v4.0.0 | Improvement |
-|--------|----------|--------|-------------|
-| **Architecture Proposals/hour** | 0 | 10 | +∞ |
-| **Evaluation Time** | - | <5 min | NEW |
-| **Cache Hit Rate** | 0% | 80% | +80pp |
-| **Storage Efficiency** | 0% | 70% | +70pp |
-| **Self-Healing Success** | - | 66% | NEW |
-| **Health Check Pass Rate** | - | 98% | NEW |
-
----
-
-## 🔐 Security & Compliance
-
-### Cryptographic Guarantees
-- **Hash Algorithm**: SHA-256 (256-bit entropy)
-- **Derivation**: HMAC-SHA512 (BIP32-style)
-- **Checksum**: 8-byte hex validation
-- **Collision Probability**: ~10⁻⁷⁷
-- **Immutability**: Enforced at registry level
-
-### Safety Mechanisms
-- ✅ Risk-based approval (high-risk >0.6 requires manual approval)
-- ✅ Containment policies (3 modes: conservative/standard/aggressive)
-- ✅ Auto-rollback (degradation detection → restore stable snapshot)
-- ✅ Audit trail (all decisions logged with timestamps)
-- ✅ Integrity verification (checksum validation on every load)
-
----
-
-## 🧪 Testing
-
-```bash
-# Run all tests
-pytest tests/ -v
-
-# Run with coverage
-pytest tests/ --cov=legion --cov-report=html
-
-# Run validation suite
-python tools/validate_deployment.py
-```
-
-**Test Coverage**: 80%+ for all critical components
-
-**Validation Checks (8)**:
-1. ✅ Module imports
-2. ✅ Registry integrity (checksum validation)
-3. ✅ Cache system (L1/L2/L3)
-4. ✅ Humanistic Controller (risk assessment)
-5. ✅ Watchdog (degradation detection)
-6. ✅ Storage optimization (MessagePack)
-7. ✅ CI/CD pipeline configuration
-8. ✅ Documentation completeness
-
----
-
-## 📖 Documentation
-
-- **Quickstart**: [`docs/ULTRA_ORCHESTRATOR_V4.md`](docs/ULTRA_ORCHESTRATOR_V4.md)
-- **Architecture Spec**: [`docs/ULTRA_ORCHESTRATOR_V4_ARCHITECTURE.md`](docs/ULTRA_ORCHESTRATOR_V4_ARCHITECTURE.md)
-- **Release Notes**: [`RELEASE_NOTES_v4.0.0.md`](RELEASE_NOTES_v4.0.0.md)
-- **API Reference**: Inline docstrings in each module
-- **Examples**: [`examples/full_workflow_example.py`](examples/full_workflow_example.py)
-- **Changelog**: [`CHANGELOG.md`](CHANGELOG.md)
-
----
-
-## 🗺️ Roadmap
-
-### v4.1.0 (Q1 2026)
-- 🔄 Real LLM integration (vLLM, Ollama)
-- 🔄 ADB integration (real mobile automation)
-- 🔄 Automated patch application
-- 🔄 Canary automation (Kubernetes)
-
-### v4.2.0 (Q2 2026)
-- 📅 Model surgery (merging, splitting, rewiring)
-- 📅 Progressive distillation
-- 📅 Distributed training support
-- 📅 Web dashboard UI
-
----
-
-## 🙏 Acknowledgments
-
-- **DroidRun** ([YouTube](https://youtu.be/fxFPMIg9W6E)): Adaptive UI automation principles
-- **Microsoft AI 2025-2040** ([YouTube](https://youtu.be/DKtc11HrGDo)): Humanistic superintelligence framework
-- **Cryptographic Fundamentals** ([YouTube](https://youtu.be/OHTg9Cv7tcA)): BIP32 derivation, immutability
-- **Memory Architecture** ([YouTube](https://youtu.be/oOiyHq9MiAM)): Multi-level cache design
-
----
-
-## 📄 License
-
-MIT License. See [`LICENSE`](LICENSE) for details.
-
----
-
-## 🤝 Contributing
-
-Contributions welcome! Please read our contributing guidelines (coming soon).
-
----
-
-## 📞 Support
-
-- **GitHub Issues**: [Issues Page](https://github.com/legion14041981-ui/Legion/issues)
-- **Pull Requests**: [PR #29 (v4.0.0)](https://github.com/legion14041981-ui/Legion/pull/29)
-- **Documentation**: [`docs/`](docs/)
-
----
-
-**Built with ❤️ by LEGION AI System Team**
-
-**Version**: 4.0.0 "Neuro-Rewriter"  
-**Release Date**: November 30, 2025  
-**Status**: ✅ Production Ready
+**Сделано с ❤️ для AI агентов**

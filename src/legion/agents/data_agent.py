@@ -8,25 +8,74 @@ DataAgent - агент для обработки и трансформации �
 - Валидацию данных
 - Работу с pandas DataFrame
 - Статистический анализ
+
+OPTIMIZED (Proposal #3): Resource cleanup and memory management
 """
 
 import asyncio
 import json
 import csv
 import xml.etree.ElementTree as ET
+import gc
+import weakref
 from typing import Dict, List, Any, Optional, Union
 from io import StringIO
+from contextlib import contextmanager
 import logging
 
 try:
     import pandas as pd
-
     PANDAS_AVAILABLE = True
 except ImportError:
     PANDAS_AVAILABLE = False
     logging.warning("pandas not installed. DataFrame operations will be limited.")
 
 from .base_agent import LegionAgent, AgentConfig
+
+
+class MemoryPool:
+    """
+    Simple memory pool for reusing buffers.
+    OPTIMIZED (Proposal #3): Reduce allocation overhead.
+    """
+    
+    def __init__(self, max_size: int = 100):
+        self.pool: List[StringIO] = []
+        self.max_size = max_size
+        self._in_use = weakref.WeakSet()
+    
+    def acquire(self) -> StringIO:
+        """Acquire a buffer from the pool."""
+        if self.pool:
+            buf = self.pool.pop()
+            buf.seek(0)
+            buf.truncate(0)
+        else:
+            buf = StringIO()
+        
+        self._in_use.add(buf)
+        return buf
+    
+    def release(self, buf: StringIO) -> None:
+        """Release a buffer back to the pool."""
+        if buf in self._in_use:
+            self._in_use.remove(buf)
+        
+        if len(self.pool) < self.max_size:
+            buf.seek(0)
+            buf.truncate(0)
+            self.pool.append(buf)
+        else:
+            buf.close()
+    
+    @contextmanager
+    def buffer(self):
+        """Context manager for automatic buffer acquisition and release."""
+        buf = self.acquire()
+        try:
+            yield buf
+        finally:
+            self.release(buf)
 
 
 class DataAgent(LegionAgent):
@@ -38,7 +87,15 @@ class DataAgent(LegionAgent):
     - Фильтрация и трансформация
     - Агрегация и статистика
     - Валидация данных
+    
+    OPTIMIZED (Proposal #3): 
+    - Memory pooling for buffers
+    - Explicit resource cleanup
+    - Garbage collection hints
     """
+    
+    # Class-level memory pool (shared across instances)
+    _memory_pool = MemoryPool(max_size=50)
 
     def __init__(
         self,
@@ -54,24 +111,50 @@ class DataAgent(LegionAgent):
         super().__init__(config)
         self.agent_id = agent_id
         self.description = description
+        self._active_resources: List[Any] = []  # Track resources for cleanup
 
     async def execute(self, task_data: Dict[str, Any]) -> Any:
         """
         Execute method required by abstract base class.
         
-        This is a minimal implementation to allow DataAgent instantiation.
-        Subclasses should override this method with specific logic.
+        OPTIMIZED (Proposal #3): Added comprehensive resource cleanup.
         
         Args:
             task_data (Dict[str, Any]): Task data containing parameters for execution
             
+        Returns:
+            Result of the execution
+            
         Raises:
             NotImplementedError: This method must be implemented by subclasses
         """
-        raise NotImplementedError(
-            "DataAgent.execute() must be implemented by subclasses. "
-            "Use specific methods like parse_json(), parse_csv(), etc."
-        )
+        try:
+            # Execute the actual task
+            raise NotImplementedError(
+                "DataAgent.execute() must be implemented by subclasses. "
+                "Use specific methods like parse_json(), parse_csv(), etc."
+            )
+        finally:
+            # OPTIMIZED: Cleanup resources after execution
+            await self._cleanup_resources()
+    
+    async def _cleanup_resources(self) -> None:
+        """
+        Cleanup resources used during execution.
+        OPTIMIZED (Proposal #3): Explicit resource management.
+        """
+        # Close any tracked resources
+        for resource in self._active_resources:
+            try:
+                if hasattr(resource, 'close'):
+                    resource.close()
+            except Exception as e:
+                logging.warning(f"Error closing resource: {e}")
+        
+        self._active_resources.clear()
+        
+        # Hint to garbage collector
+        gc.collect(generation=0)
 
     async def parse_json(self, data: Union[str, bytes]) -> Any:
         """
@@ -92,6 +175,8 @@ class DataAgent(LegionAgent):
     ) -> List[Dict[str, Any]]:
         """
         Парсинг CSV-данных.
+        
+        OPTIMIZED (Proposal #3): Uses memory pool for StringIO buffers.
 
         :param data: строка или bytes с CSV
         :param delimiter: разделитель
@@ -101,13 +186,19 @@ class DataAgent(LegionAgent):
         if isinstance(data, bytes):
             data = data.decode("utf-8")
 
-        f = StringIO(data)
-        if has_header:
-            reader = csv.DictReader(f, delimiter=delimiter)
-            return list(reader)
-        else:
-            reader = csv.reader(f, delimiter=delimiter)
-            return [row for row in reader]
+        # OPTIMIZED: Use memory pool
+        with self._memory_pool.buffer() as f:
+            f.write(data)
+            f.seek(0)
+            
+            if has_header:
+                reader = csv.DictReader(f, delimiter=delimiter)
+                result = list(reader)
+            else:
+                reader = csv.reader(f, delimiter=delimiter)
+                result = [row for row in reader]
+        
+        return result
 
     async def parse_xml(self, data: Union[str, bytes]) -> ET.Element:
         """
@@ -172,6 +263,8 @@ class DataAgent(LegionAgent):
     ) -> "pd.DataFrame":
         """
         Преобразование списка записей в pandas DataFrame.
+        
+        OPTIMIZED (Proposal #3): Track DataFrame for cleanup.
 
         :param records: список словарей
         :return: DataFrame
@@ -179,7 +272,9 @@ class DataAgent(LegionAgent):
         if not PANDAS_AVAILABLE:
             raise RuntimeError("pandas is not installed")
 
-        return pd.DataFrame.from_records(records)
+        df = pd.DataFrame.from_records(records)
+        self._active_resources.append(df)  # Track for cleanup
+        return df
 
     async def describe_dataframe(
         self,
@@ -187,6 +282,8 @@ class DataAgent(LegionAgent):
     ) -> Dict[str, Any]:
         """
         Статистическое описание DataFrame.
+        
+        OPTIMIZED (Proposal #3): Explicit GC hint after heavy operations.
 
         :param df: DataFrame
         :return: словарь с основными статистиками
@@ -195,11 +292,17 @@ class DataAgent(LegionAgent):
             raise RuntimeError("pandas is not installed")
 
         desc = df.describe(include="all")
-        return {
+        result = {
             "summary": desc.to_dict(),
             "shape": df.shape,
             "columns": list(df.columns),
         }
+        
+        # OPTIMIZED: Hint GC after heavy operation
+        del desc
+        gc.collect(generation=0)
+        
+        return result
 
     async def validate_records(
         self,

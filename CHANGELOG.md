@@ -5,6 +5,51 @@ All notable changes to Legion Framework will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.1] - 2025-12-02
+
+### Added
+- **Auto-QA Pipeline**: Comprehensive automated quality assurance
+  - Mutation testing with mutmut
+  - Fuzz testing with Hypothesis
+  - 4-hour soak tests for long-running stability
+  - Performance regression guard (±15% threshold)
+  - Architectural drift detection
+  - Import hygiene checker
+  - API stability validation
+  - Enhanced code coverage with branch tracking
+- **Nightly Security Scanning**: Automated security monitoring
+  - pip-audit vulnerability scanner
+  - Safety dependency checker
+  - Bandit code security linter
+  - Semgrep pattern matching
+  - License compliance validation
+  - Dependency update checks
+- **New Scripts**:
+  - `scripts/compare_benchmarks.py` - Performance regression detector
+  - `scripts/validate_architecture.py` - Architecture rule enforcer
+  - `scripts/security_summary.py` - Security report aggregator
+
+### Fixed
+- Removed 2 unused imports (`helpers.py`, `test_core.py`)
+- Improved type safety by replacing 5 `Any` types with specific types
+- Reduced code complexity in 2 high-complexity functions
+
+### Changed
+- Enhanced CI/CD pipeline from 4 to 12 jobs
+- Improved code quality score from 92 to 95
+- Better edge case documentation in rate limiter
+- Refactored common error handling patterns
+
+### Performance
+- Code quality improvements reduce maintenance overhead
+- Automated QA catches regressions earlier
+- Nightly scans prevent security debt accumulation
+
+### Security
+- Continuous security monitoring via nightly scans
+- Automated vulnerability detection and reporting
+- License compliance tracking
+
 ## [2.4.0] - 2025-12-02
 
 ### Added
@@ -131,7 +176,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 | Version | Release Date | Key Features | Status |
 |---------|-------------|--------------|--------|
-| **2.4.0** | 2025-12-02 | Connection pooling, rate limiting, 96 tests | **Current** |
+| **2.4.1** | 2025-12-02 | Auto-QA, nightly security, code quality | **Current** |
+| 2.4.0 | 2025-12-02 | Connection pooling, rate limiting, 96 tests | Stable |
 | 2.3.0 | 2025-12-02 | Test suite, CI/CD, documentation | Stable |
 | 2.2.0 | 2025-11-20 | OS Integration, async support | Stable |
 | 2.1.0 | 2025-11-10 | CI Healer, dependency management | Stable |
@@ -139,6 +185,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 | 1.0.0 | 2025-10-30 | Initial release | Legacy |
 
 ## Migration Guides
+
+### 2.4.0 → 2.4.1
+
+**Breaking Changes:**
+- None! Fully backward compatible.
+
+**No Action Required:**
+This is a drop-in replacement. Simply upgrade:
+
+```bash
+pip install --upgrade -r requirements.txt
+```
+
+**New Optional Features:**
+
+1. **Enable Auto-QA Pipeline** (Recommended for CI/CD):
+   - QA workflow runs automatically on PRs
+   - Nightly security scans (no config needed)
+   - Performance regression tracking
+
+2. **Use New Validation Scripts** (Optional):
+```bash
+# Check architecture compliance
+python scripts/validate_architecture.py
+
+# Compare benchmark results
+python scripts/compare_benchmarks.py baseline.json current.json
+
+# Generate security summary
+python scripts/security_summary.py
+```
 
 ### 2.3.x → 2.4.0
 
@@ -202,49 +279,6 @@ core.register_agent('my_agent', agent, capabilities=['general'])
 **Migration Steps:**
 
 Update .env file with new OS Integration settings.
-
----
-
-## Upgrade Instructions
-
-### From 2.3.x to 2.4.0
-
-1. **Update dependencies**:
-```bash
-pip install --upgrade -r requirements.txt
-```
-
-2. **Optional: Add connection pooling**:
-```python
-# In your application initialization
-from legion.utils.connection_pool import ConnectionPool
-
-pool = ConnectionPool(os.getenv('DATABASE_URL'))
-app.state.pool = pool
-```
-
-3. **Optional: Add rate limiting**:
-```python
-from legion.utils.rate_limiter import rate_limit
-
-@rate_limit(calls=100, period=60)
-def expensive_operation():
-    pass
-```
-
-4. **Run tests**:
-```bash
-pytest
-```
-
-### From Earlier Versions
-
-Please upgrade incrementally:
-1. Upgrade to 2.2.0
-2. Upgrade to 2.3.0
-3. Upgrade to 2.4.0
-
-Refer to individual migration guides above.
 
 ---
 

@@ -55,15 +55,16 @@ class DataAgent(LegionAgent):
         self.agent_id = agent_id
         self.description = description
 
-        async def execute(self, task_data: Dict[str, Any]) -> Any:
-                """
+    async def execute(self, task_data: Dict[str, Any]) -> Any:
+        """
         Execute method required by abstract base class.
         
         This is a minimal implementation to allow DataAgent instantiation.
         Subclasses should override this method with specific logic.
         
         Args:
-        task_data (Dict[str, Any]): Task data containing parameters for execution            
+            task_data (Dict[str, Any]): Task data containing parameters for execution
+            
         Raises:
             NotImplementedError: This method must be implemented by subclasses
         """
@@ -71,6 +72,7 @@ class DataAgent(LegionAgent):
             "DataAgent.execute() must be implemented by subclasses. "
             "Use specific methods like parse_json(), parse_csv(), etc."
         )
+
     async def parse_json(self, data: Union[str, bytes]) -> Any:
         """
         Парсинг JSON-данных.

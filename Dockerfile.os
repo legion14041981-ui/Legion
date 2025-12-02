@@ -1,6 +1,6 @@
 # Legion v2.2 Production Dockerfile with OS Integration
 
-FROM python:3.11-slim
+FROM python:3.14-slim
 
 LABEL maintainer="legion14041981@gmail.com"
 LABEL version="2.2.0"

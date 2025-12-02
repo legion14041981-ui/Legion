@@ -1,62 +1,84 @@
-# Legion Framework Dependencies
+# Legion Framework Dependencies - Production Ready v2.3.0
 
 # Core dependencies
-supabase==2.9.0
-python-dotenv==1.0.1
-httpx==0.27.0
+supabase==2.24.0  # Updated from 2.9.0 - security patches
+python-dotenv==1.2.1  # Updated from 1.0.1 - bug fixes
+httpx==0.27.2  # Updated - performance improvements
 
 # Google Sheets integration
-google-api-python-client>=2.100.0
-google-auth>=2.23.0
-google-auth-oauthlib>=1.1.0
-google-auth-httplib2>=0.1.1
+google-api-python-client>=2.152.0  # Updated
+google-auth>=2.36.0  # Updated - security fixes
+google-auth-oauthlib>=1.2.1  # Updated
+google-auth-httplib2>=0.2.0  # Updated
 
-# Browser automation (Recommendation #2)
-playwright==1.45.0
+# Browser automation
+playwright==1.56.0  # Updated from 1.45.0 - stability improvements
 
-# AI integration (Recommendation #3)
-openai>=1.0.0
+# AI integration
+openai>=1.59.0  # Updated - new features
+anthropic>=0.40.0  # Added - Claude support
 
-# Multi-agent orchestration (Recommendation #4)
-langgraph>=0.1.0
-langchain>=0.1.0
-langchain-core>=0.1.0
+# Multi-agent orchestration
+langgraph>=0.2.55  # Updated
+langchain>=0.3.15  # Updated
+langchain-core>=0.3.28  # Updated
+langchain-community>=0.3.15  # Added
 
-# MCP Protocol (Recommendation #1)
-fastapi==0.104.1
-uvicorn[standard]==0.24.0
-pydantic>=2.0.0
+# MCP Protocol
+fastapi==0.122.0  # Updated from 0.104.1 - critical security fixes
+uvicorn[standard]==0.38.0  # Updated from 0.24.0 - performance
+pydantic>=2.10.4  # Updated - validation improvements
+pydantic-settings>=2.7.0  # Added - settings management
+
+# Database
+psycopg2-binary>=2.9.10  # Added - PostgreSQL adapter
+sqlalchemy>=2.0.36  # Added - ORM and connection pooling
+alembic>=1.14.0  # Added - database migrations
+
+# Caching and session
+redis>=5.2.1  # Updated - L2 cache layer
+aioredis>=2.0.1  # Async Redis client
 
 # Testing and monitoring
-pytest>=7.4.0
-pytest-asyncio>=0.21.0
-pytest-playwright>=0.4.0
+pytest>=8.3.4  # Updated from 7.4.0
+pytest-asyncio>=0.24.0  # Updated from 0.21.0
+pytest-cov>=6.0.0  # Added - coverage reporting
+pytest-playwright>=0.6.2  # Updated from 0.4.0
 
 # Security and validation
-restrictedpython>=6.2
+restrictedpython>=7.4  # Updated from 6.2 - security patches
+pip-audit>=2.9.0  # Added - dependency vulnerability scanning
 
 # Logging and monitoring
-prometheus-client>=0.19.0
+prometheus-client>=0.21.1  # Updated from 0.19.0
+structlog>=24.4.0  # Added - structured logging
 
-# Development tools
-black>=23.0.0
-pylint>=3.0.0
-mypy>=1.7.0
+# Development tools (moved to requirements-dev.txt)
+# black>=25.11.0
+# pylint>=3.3.4
+# mypy>=1.14.1
+# ruff>=0.14.7
 
-# OS Integration Layer (v2.2 - Phase 1)
-aiofiles>=24.1.0        # Async file operations
-chromadb>=0.5.0         # Long-term memory & vector store
-psutil>=6.0.0           # Resource monitoring & process management
+# OS Integration Layer
+aiofiles>=24.1.0  # Async file operations
+chromadb>=0.5.23  # Updated - vector store
+psutil>=6.1.1  # Updated - resource monitoring
 
 # Dependency management
-pip-tools>=7.3.0        # For pip-compile and requirements.lock generation
+pip-tools>=7.4.1  # Updated - requirements management
 
-# Ultra-Orchestrator v4.1.0 Dependencies (COMET_TERMINATOR Auto-Fix #2)
-msgpack>=1.0.0          # CompactConfigEncoder for 70% storage savings
-redis>=5.0.0            # L2 cache layer for ArchitectureCache
-aioredis>=2.0.0         # Async Redis client for non-blocking operations
-watchdog>=4.0.0         # File system monitoring (distinct from PerformanceWatchdog class)
+# Ultra-Orchestrator v4.1.0 Dependencies
+msgpack>=1.1.0  # Updated - compact encoding
+watchdog>=6.0.0  # Updated from 4.0.0 - file system monitoring
 
-# Optional: Distributed backend (Phase 4)
-# ray[default]>=2.9.0   # Uncomment for distributed execution
-# redis>=5.0.0          # Uncomment for persistent state
+# Rate limiting and resilience
+slowapi>=0.1.9  # Added - rate limiting
+circuitbreaker>=2.0.0  # Added - circuit breaker pattern
+tenacity>=9.0.0  # Added - retry logic
+
+# Performance
+orjson>=3.10.14  # Added - fast JSON serialization
+ujson>=5.10.0  # Added - ultra-fast JSON
+
+# Optional: Distributed backend
+# ray[default]>=2.40.0  # Uncomment for distributed execution

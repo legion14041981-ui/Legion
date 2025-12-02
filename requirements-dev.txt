@@ -1,31 +1,67 @@
-# Development and Testing Dependencies for Legion
+# Legion Framework - Development Dependencies
+# Install with: pip install -r requirements-dev.txt
 
-# Code Quality and Linting
-ruff==0.1.8
-flake8==7.3.0
-black==23.12.0
-mypy==1.7.1
-pylint==3.0.3
+# Install production dependencies first
+-r requirements.txt
 
-# Security Scanning
-bandit==1.7.5
-pip-audit==2.6.1
+# Code formatting
+black>=25.11.0  # Updated - code formatter
+isort>=5.13.2  # Import sorting
+autoflake>=2.3.1  # Remove unused imports
 
-# Testing
-pytest==7.4.3
-pytest-cov==4.1.0
-pytest-asyncio==0.21.1
-pytest-xdist==3.5.0
-
-# Pre-commit hooks
-pre-commit==3.5.0
-
-# Formatting and sorting
-isort==5.13.2
+# Linting
+pylint>=3.3.4  # Updated - static analysis
+flake8>=7.1.1  # Style guide enforcement
+flake8-docstrings>=1.7.0  # Docstring linting
+flake8-annotations>=3.2.0  # Type annotation checking
+flake8-bugbear>=24.12.12  # Find likely bugs
 
 # Type checking
-types-requests==2.31.0.10
+mypy>=1.14.1  # Updated - static type checker
+types-requests>=2.32.0  # Type stubs
+types-redis>=4.6.0  # Type stubs
+
+# Modern linting
+ruff>=0.14.7  # Fast Python linter
+
+# Testing
+pytest>=8.3.4
+pytest-asyncio>=0.24.0
+pytest-cov>=6.0.0
+pytest-xdist>=3.6.1  # Parallel testing
+pytest-mock>=3.14.0  # Mocking
+pytest-benchmark>=5.1.0  # Performance benchmarking
+pytest-timeout>=2.3.1  # Test timeouts
+coverage[toml]>=7.6.10  # Coverage reporting
+
+# Debugging
+ipdb>=0.13.13  # Enhanced debugger
+pdbpp>=0.10.3  # Better pdb
 
 # Documentation
-sphinx==7.2.6
-sphinx-rtd-theme==2.0.0
+sphinx>=7.4.7  # Documentation generator
+sphinx-rtd-theme>=3.0.2  # ReadTheDocs theme
+sphinx-autodoc-typehints>=2.5.0  # Type hints in docs
+myst-parser>=4.0.0  # Markdown support
+
+# Security
+bandit>=1.8.0  # Security linter
+safety>=3.2.11  # Dependency security check
+
+# Pre-commit hooks
+pre-commit>=4.0.1  # Git hooks framework
+
+# Profiling
+memory-profiler>=0.61.0  # Memory profiling
+py-spy>=0.4.0  # Sampling profiler
+
+# Benchmarking
+locust>=2.33.3  # Load testing
+
+# Build tools
+build>=1.2.2  # Package builder
+twine>=6.0.1  # PyPI upload
+
+# Notebook support (optional)
+# jupyter>=1.1.1
+# ipykernel>=6.29.5

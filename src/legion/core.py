@@ -12,16 +12,45 @@ Legion Core Module - руководителя работы многоагент�
 import logging
 import asyncio
 import os
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Callable
 from abc import ABC
 from pathlib import Path
 from dotenv import load_dotenv
+from collections import deque
 
 from .database import LegionDatabase
 
 # Конфигурация логирования
 logger = logging.getLogger(__name__)
 
+
+# ============================================================================
+# CUSTOM EXCEPTIONS
+# ============================================================================
+
+class LegionError(Exception):
+    """Base exception for all Legion errors."""
+    pass
+
+
+class TaskDispatchError(LegionError):
+    """Raised when task cannot be dispatched to any agent."""
+    pass
+
+
+class AgentNotFoundError(LegionError):
+    """Raised when requested agent does not exist."""
+    pass
+
+
+class ConfigurationError(LegionError):
+    """Raised when configuration is invalid or missing."""
+    pass
+
+
+# ============================================================================
+# HELPER FUNCTIONS
+# ============================================================================
 
 def safe_load_dotenv() -> bool:
     """
@@ -58,6 +87,7 @@ def safe_load_dotenv() -> bool:
             # Попытка декодировать с разными кодировками
             for encoding in ['utf-16', 'utf-16-le', 'utf-16-be', 'cp1251', 'cp1252', 'latin-1']:
                 try:
+                    logger.debug(f"Trying encoding: {encoding}")
                     text = content.decode(encoding)
                     
                     # Создать резервную копию
@@ -73,7 +103,8 @@ def safe_load_dotenv() -> bool:
                     load_dotenv(env_path)
                     return True
                     
-                except (UnicodeDecodeError, UnicodeEncodeError):
+                except (UnicodeDecodeError, UnicodeEncodeError) as decode_err:
+                    logger.debug(f"Encoding {encoding} failed: {decode_err}")
                     continue
             
             logger.error(f"❌ Could not fix encoding automatically")
@@ -84,9 +115,15 @@ def safe_load_dotenv() -> bool:
             logger.info(f"   LEGION_OS_ENABLED=true")
             return False
             
-        except Exception as e:
-            logger.error(f"❌ Error fixing .env: {e}")
+        except (IOError, OSError) as io_err:
+            logger.error(f"❌ Error reading/writing .env file: {io_err}")
             return False
+        except Exception as e:
+            logger.error(f"❌ Unexpected error fixing .env: {e}")
+            return False
+    except (IOError, OSError) as io_err:
+        logger.error(f"❌ Error reading .env file: {io_err}")
+        return False
     except Exception as e:
         logger.error(f"❌ Unexpected error loading .env: {e}")
         return False
@@ -97,6 +134,10 @@ if not safe_load_dotenv():
     logger.warning("⚠️ Running without .env configuration")
 
 
+# ============================================================================
+# LEGION CORE
+# ============================================================================
+
 class LegionCore:
     """
     Основное ядро Legion Framework.
@@ -104,11 +145,14 @@ class LegionCore:
     Отвечает за запуск и управление экосистемой агентов:
     - Инициализация и конфигурация
     - Координация эксекуции
+    - Интеллектуальная диспетчеризация задач
     - Логирование
     - OS Integration (если включена)
     
     Attributes:
         agents (Dict[str, Any]): Словарь зарегистрированных агентов
+        agent_capabilities (Dict[str, List[str]]): Способности каждого агента
+        task_queue (deque): Очередь задач для обработки
         is_running (bool): Флаг статуса работы ядра
         os_integration_enabled (bool): Флаг включения OS Integration
     """
@@ -119,8 +163,13 @@ class LegionCore:
         
         Args:
             config (Dict[str, Any], optional): Конфигурация системы. По умолчанию None.
+            
+        Raises:
+            ConfigurationError: If critical configuration is invalid
         """
         self.agents: Dict[str, Any] = {}
+        self.agent_capabilities: Dict[str, List[str]] = {}
+        self.task_queue: deque = deque()
         self.is_running: bool = False
         self.config: Dict[str, Any] = config or {}
         
@@ -134,25 +183,53 @@ class LegionCore:
         try:
             self.db = LegionDatabase()
             logger.info("✅ Database connection established")
+        except ConnectionError as e:
+            logger.warning(f"⚠️ Database connection failed: {e}")
+            self.db = None
         except Exception as e:
-            logger.warning(f"⚠️ Database not available: {e}")
+            logger.error(f"❌ Unexpected database error: {e}")
             self.db = None
         
         logger.info("✅ LegionCore initialized")
         if self.os_integration_enabled:
             logger.info("🔌 OS Integration enabled")
     
-    def register_agent(self, agent_id: str, agent: Any) -> None:
+    def register_agent(
+        self, 
+        agent_id: str, 
+        agent: Any, 
+        capabilities: Optional[List[str]] = None
+    ) -> None:
         """
         Регистрация нового агента в системе.
         
         Args:
             agent_id (str): Уникальный идентификатор агента
             agent (Any): Объект агента
+            capabilities (List[str], optional): Список способностей агента
+                (например: ['coding', 'testing', 'documentation'])
+        
+        Raises:
+            ValueError: If agent_id already exists
         """
-        # Простая регистрация агента
+        if agent_id in self.agents:
+            raise ValueError(f"Agent '{agent_id}' already registered")
+        
+        # Регистрация агента
         self.agents[agent_id] = agent
-        logger.info(f"✅ Agent '{agent_id}' registered")
+        
+        # Сохранить способности агента
+        if capabilities:
+            self.agent_capabilities[agent_id] = capabilities
+        elif hasattr(agent, 'capabilities'):
+            self.agent_capabilities[agent_id] = agent.capabilities
+        else:
+            self.agent_capabilities[agent_id] = ['general']
+        
+        logger.info(
+            f"✅ Agent '{agent_id}' registered "
+            f"with capabilities: {self.agent_capabilities[agent_id]}"
+        )
         
         # Синхронизация с БД
         if self.db:
@@ -174,21 +251,163 @@ class LegionCore:
                     config=getattr(agent, 'config', {})
                 )
                 logger.info(f"🔌 OS Interface attached to agent '{agent_id}'")
+            except ImportError as e:
+                logger.error(f"❌ Cannot import OSInterface: {e}")
             except Exception as e:
                 logger.error(f"❌ Failed to attach OS Interface: {e}")
     
-    def dispatch_task(self, task_id: str, task_data: Dict[str, Any]) -> None:
+    def dispatch_task(
+        self, 
+        task_id: str, 
+        task_data: Dict[str, Any],
+        required_capability: Optional[str] = None
+    ) -> Optional[Any]:
         """
         Диспетчеризация задачи к соответствующему агенту.
+        
+        Умная маршрутизация задач:
+        1. Если указана required_capability, ищем агентов с этой способностью
+        2. Если не указана, используем task_data['type'] или 'general'
+        3. Выбираем первого доступного агента
+        4. Если нет подходящих агентов, добавляем задачу в очередь
         
         Args:
             task_id (str): Идентификатор задачи
             task_data (Dict[str, Any]): Данные задачи
+            required_capability (str, optional): Требуемая способность агента
+        
+        Returns:
+            Optional[Any]: Результат выполнения задачи или None если в очереди
+            
+        Raises:
+            TaskDispatchError: If no suitable agent found and queue is disabled
         """
         logger.debug(f"📤 Dispatching task '{task_id}' with data: {task_data}")
         
-        # Плацехолдер для реальной диспетчеризации
-        # TODO: Реализовать маршрутизацию задач к агентам
+        # Определить требуемую способность
+        capability = (
+            required_capability 
+            or task_data.get('type', 'general')
+        )
+        
+        # Найти подходящих агентов
+        suitable_agents = [
+            agent_id 
+            for agent_id, caps in self.agent_capabilities.items()
+            if capability in caps or 'general' in caps
+        ]
+        
+        if not suitable_agents:
+            # Нет подходящих агентов
+            if self.config.get('enable_task_queue', True):
+                logger.warning(
+                    f"⚠️ No agent found for capability '{capability}'. "
+                    f"Adding task '{task_id}' to queue."
+                )
+                self.task_queue.append({
+                    'task_id': task_id,
+                    'task_data': task_data,
+                    'capability': capability
+                })
+                return None
+            else:
+                raise TaskDispatchError(
+                    f"No agent found for capability '{capability}' "
+                    f"and task queue is disabled"
+                )
+        
+        # Выбрать первого доступного агента (в будущем: load balancing)
+        selected_agent_id = suitable_agents[0]
+        agent = self.agents[selected_agent_id]
+        
+        logger.info(
+            f"✅ Task '{task_id}' dispatched to agent '{selected_agent_id}'"
+        )
+        
+        # Выполнить задачу
+        try:
+            if hasattr(agent, 'execute'):
+                result = agent.execute(task_data)
+                logger.info(f"✅ Task '{task_id}' completed successfully")
+                return result
+            else:
+                raise TaskDispatchError(
+                    f"Agent '{selected_agent_id}' has no execute() method"
+                )
+        except Exception as e:
+            logger.error(f"❌ Task '{task_id}' failed: {e}")
+            raise TaskDispatchError(f"Task execution failed: {e}") from e
+    
+    async def dispatch_task_async(
+        self,
+        task_id: str,
+        task_data: Dict[str, Any],
+        required_capability: Optional[str] = None
+    ) -> Optional[Any]:
+        """
+        Асинхронная диспетчеризация задачи (v2.3).
+        
+        Args:
+            task_id (str): Идентификатор задачи
+            task_data (Dict[str, Any]): Данные задачи
+            required_capability (str, optional): Требуемая способность агента
+        
+        Returns:
+            Optional[Any]: Результат выполнения задачи
+        """
+        logger.debug(f"📤 [ASYNC] Dispatching task '{task_id}'")
+        
+        # Определить требуемую способность
+        capability = (
+            required_capability 
+            or task_data.get('type', 'general')
+        )
+        
+        # Найти подходящих агентов
+        suitable_agents = [
+            agent_id 
+            for agent_id, caps in self.agent_capabilities.items()
+            if capability in caps or 'general' in caps
+        ]
+        
+        if not suitable_agents:
+            if self.config.get('enable_task_queue', True):
+                logger.warning(f"⚠️ No agent found, queuing task '{task_id}'")
+                self.task_queue.append({
+                    'task_id': task_id,
+                    'task_data': task_data,
+                    'capability': capability
+                })
+                return None
+            else:
+                raise TaskDispatchError(
+                    f"No agent found for capability '{capability}'"
+                )
+        
+        # Выбрать агента
+        selected_agent_id = suitable_agents[0]
+        agent = self.agents[selected_agent_id]
+        
+        logger.info(f"✅ [ASYNC] Task '{task_id}' → agent '{selected_agent_id}'")
+        
+        # Выполнить задачу асинхронно
+        try:
+            if hasattr(agent, 'execute_async'):
+                result = await agent.execute_async(task_data)
+            elif hasattr(agent, 'execute'):
+                # Fallback to sync execution in thread pool
+                loop = asyncio.get_event_loop()
+                result = await loop.run_in_executor(None, agent.execute, task_data)
+            else:
+                raise TaskDispatchError(
+                    f"Agent '{selected_agent_id}' has no execute method"
+                )
+            
+            logger.info(f"✅ [ASYNC] Task '{task_id}' completed")
+            return result
+        except Exception as e:
+            logger.error(f"❌ [ASYNC] Task '{task_id}' failed: {e}")
+            raise TaskDispatchError(f"Task execution failed: {e}") from e
     
     def start(self) -> None:
         """
@@ -204,7 +423,7 @@ class LegionCore:
         self.is_running = False
         logger.info("⏹️ LegionCore stopped")
     
-    def get_agent(self, agent_id: str) -> Optional[Any]:
+    def get_agent(self, agent_id: str) -> Any:
         """
         Получить агента по его идентификатору.
         
@@ -212,9 +431,14 @@ class LegionCore:
             agent_id (str): Идентификатор агента
         
         Returns:
-            Optional[Any]: Объект агента или None
+            Any: Объект агента
+            
+        Raises:
+            AgentNotFoundError: If agent does not exist
         """
-        return self.agents.get(agent_id)
+        if agent_id not in self.agents:
+            raise AgentNotFoundError(f"Agent '{agent_id}' not found")
+        return self.agents[agent_id]
     
     def get_all_agents(self) -> Dict[str, Any]:
         """
@@ -224,6 +448,15 @@ class LegionCore:
             Dict[str, Any]: Словарь агентов
         """
         return self.agents.copy()
+    
+    def get_task_queue_size(self) -> int:
+        """
+        Получить размер очереди задач.
+        
+        Returns:
+            int: Количество задач в очереди
+        """
+        return len(self.task_queue)
 
     # ===== v2.3 Async Methods =====
     
@@ -324,7 +557,8 @@ class LegionCore:
                 "inactive": len(self.agents) - active_count
             },
             "is_running": self.is_running,
-            "os_integration": self.os_integration_enabled
+            "os_integration": self.os_integration_enabled,
+            "task_queue_size": len(self.task_queue)
         }
     
     def get_metrics(self) -> Dict[str, Any]:
@@ -351,7 +585,7 @@ class LegionCore:
             "active_agents": active_count,
             "inactive_agents": len(self.agents) - active_count,
             "total_tasks": total_tasks,
+            "queued_tasks": len(self.task_queue),
             "system_running": self.is_running,
             "os_integration_enabled": self.os_integration_enabled
         }
-

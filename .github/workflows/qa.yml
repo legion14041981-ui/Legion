@@ -1,0 +1,284 @@
+name: Quality Assurance Suite
+
+# Comprehensive QA pipeline with mutation, fuzz, and soak tests
+on:
+  pull_request:
+    branches: [main, develop]
+  schedule:
+    # Run nightly at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch:
+
+jobs:
+  mutation-testing:
+    name: Mutation Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install mutmut
+          
+      - name: Run mutation tests
+        run: |
+          mutmut run --paths-to-mutate=src/legion
+        continue-on-error: true
+        
+      - name: Generate mutation report
+        run: |
+          mutmut results
+          mutmut html
+        
+      - name: Upload mutation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-report
+          path: html/
+
+  fuzz-testing:
+    name: Fuzz Testing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          pip install hypothesis atheris
+          
+      - name: Run fuzz tests
+        run: |
+          pytest tests/fuzz/ -v --hypothesis-show-statistics
+        timeout-minutes: 15
+        
+      - name: Upload fuzz results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fuzz-results
+          path: .hypothesis/
+
+  soak-testing:
+    name: Long-Running Soak Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run soak tests (4 hours)
+        run: |
+          pytest tests/soak/ -v --duration=14400
+        timeout-minutes: 300
+        
+      - name: Analyze memory leaks
+        run: |
+          python scripts/analyze_memory.py
+          
+      - name: Upload soak results
+        uses: actions/upload-artifact@v4
+        with:
+          name: soak-test-results
+          path: reports/soak/
+
+  performance-regression:
+    name: Performance Regression Guard
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need history for comparison
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run benchmark suite
+        run: |
+          python scripts/benchmark.py --tasks 5000 --agents 5 --output benchmark-current.json
+          
+      - name: Download baseline
+        uses: dawidd6/action-download-artifact@v3
+        with:
+          workflow: qa.yml
+          name: benchmark-baseline
+          path: .
+        continue-on-error: true
+          
+      - name: Compare with baseline
+        run: |
+          python scripts/compare_benchmarks.py benchmark-baseline.json benchmark-current.json
+          
+      - name: Save new baseline
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-baseline
+          path: benchmark-current.json
+
+  architectural-drift:
+    name: Architectural Drift Detection
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install pipdeptree pydeps
+          
+      - name: Check dependency tree
+        run: |
+          pipdeptree --warn fail
+          
+      - name: Generate dependency graph
+        run: |
+          pydeps src/legion --max-bacon=2 -o dependencies.svg
+          
+      - name: Check for circular dependencies
+        run: |
+          pydeps src/legion --show-cycles
+          
+      - name: Validate architecture rules
+        run: |
+          python scripts/validate_architecture.py
+          
+      - name: Upload dependency graph
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-graph
+          path: dependencies.svg
+
+  import-hygiene:
+    name: Import Hygiene Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements-dev.txt
+          pip install autoflake isort
+          
+      - name: Check for unused imports
+        run: |
+          autoflake --check --remove-all-unused-imports --recursive src/ tests/
+          
+      - name: Check import sorting
+        run: |
+          isort --check-only --profile black src/ tests/
+          
+      - name: Report violations
+        if: failure()
+        run: |
+          echo "Import hygiene violations found. Run 'autoflake --in-place --remove-all-unused-imports --recursive src/ tests/' to fix."
+
+  api-stability:
+    name: API Stability Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run API compatibility tests
+        run: |
+          pytest tests/api_stability/ -v
+          
+      - name: Check backward compatibility
+        run: |
+          python scripts/check_api_compatibility.py
+
+  code-coverage:
+    name: Enhanced Code Coverage
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install -r requirements-dev.txt
+          
+      - name: Run tests with coverage
+        run: |
+          pytest --cov=src/legion --cov-report=xml --cov-report=html --cov-branch
+          
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+          fail_ci_if_error: false
+          
+      - name: Coverage report
+        run: |
+          coverage report --fail-under=85
+
+  qa-summary:
+    name: QA Summary Report
+    runs-on: ubuntu-latest
+    needs: [mutation-testing, fuzz-testing, performance-regression, architectural-drift, import-hygiene, api-stability, code-coverage]
+    if: always()
+    steps:
+      - name: Generate QA summary
+        run: |
+          echo "## QA Suite Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- Mutation Testing: ${{ needs.mutation-testing.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Fuzz Testing: ${{ needs.fuzz-testing.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Performance Regression: ${{ needs.performance-regression.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Architectural Drift: ${{ needs.architectural-drift.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Import Hygiene: ${{ needs.import-hygiene.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- API Stability: ${{ needs.api-stability.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Code Coverage: ${{ needs.code-coverage.result }}" >> $GITHUB_STEP_SUMMARY

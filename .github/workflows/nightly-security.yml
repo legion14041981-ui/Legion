@@ -1,0 +1,128 @@
+name: Nightly Security Scan
+
+# Comprehensive security scanning every night
+on:
+  schedule:
+    # Run at 3 AM UTC every day
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pip-audit safety bandit semgrep
+          
+      - name: Run pip-audit
+        run: |
+          pip-audit --desc --format json --output pip-audit-report.json
+        continue-on-error: true
+          
+      - name: Run Safety check
+        run: |
+          safety check --json --output safety-report.json
+        continue-on-error: true
+          
+      - name: Run Bandit
+        run: |
+          bandit -r src/ -f json -o bandit-report.json
+        continue-on-error: true
+          
+      - name: Run Semgrep
+        run: |
+          semgrep --config=auto --json --output semgrep-report.json src/
+        continue-on-error: true
+          
+      - name: Upload security reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-reports
+          path: |
+            pip-audit-report.json
+            safety-report.json
+            bandit-report.json
+            semgrep-report.json
+            
+      - name: Generate security summary
+        run: |
+          python scripts/security_summary.py
+          
+      - name: Create issue if vulnerabilities found
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: 'Security vulnerabilities detected',
+              body: 'Nightly security scan found vulnerabilities. Check the workflow run for details.',
+              labels: ['security', 'automated']
+            })
+
+  dependency-update-check:
+    name: Dependency Update Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Check for outdated packages
+        run: |
+          pip install pip-check-updates
+          pip list --outdated --format json > outdated-packages.json
+          
+      - name: Generate update report
+        run: |
+          python scripts/dependency_update_report.py
+          
+      - name: Upload update report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-update-report
+          path: outdated-packages.json
+
+  license-compliance:
+    name: License Compliance Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pip-licenses
+          
+      - name: Check licenses
+        run: |
+          pip-licenses --format=json --output-file=licenses.json
+          
+      - name: Validate license compatibility
+        run: |
+          python scripts/validate_licenses.py
+          
+      - name: Upload license report
+        uses: actions/upload-artifact@v4
+        with:
+          name: license-report
+          path: licenses.json

@@ -1,0 +1,73 @@
+# Legion v4.1.0 Production Configuration
+# Deployed: 2025-12-02 12:01 MSK
+
+environment: production
+version: "4.1.0"
+deployed_at: "2025-12-02T09:01:00Z"
+
+# Cache Optimization (Proposal #1)
+cache:
+  l1_size: 20  # Doubled from 10
+  l2_size: 2000  # Doubled from 1000
+  l4_size: 10000
+  l4_similarity_threshold: 0.80  # Lowered from 0.85 for better matching
+  eviction_policy: "adaptive_lru"  # LRU + frequency tracking
+  warmup_enabled: true
+  expected_hit_rate: 0.85  # Target: 85%
+
+# Memory Optimization (Proposal #3)
+memory:
+  pool_enabled: true
+  pool_max_size: 50
+  auto_cleanup: true
+  gc_hints_enabled: true
+  max_usage_percent: 60  # Target: 60%
+  resource_tracking: true
+
+# Watchdog v4.1 Configuration
+monitoring:
+  watchdog_enabled: true
+  watchdog_interval_sec: 300
+  active_criteria: 21
+  drift_detection_enabled: true
+  semantic_hash_validation: true
+  registry_integrity_check: true
+  metrics_port: 9090
+  
+# Safety & Rollback
+safety:
+  dry_run: false
+  rollback_enabled: true
+  rollback_sha: "12ff942"
+  canary_deployment: true
+  canary_stages: [5, 25, 50, 100]
+  canary_monitor_duration_sec: 900
+  auto_rollback_on_failure: true
+
+# Logging
+logging:
+  level: "INFO"
+  format: "json"
+  output: "stdout"
+  file: "/var/log/legion/production.log"
+  rotation: "daily"
+  retention_days: 30
+
+# Performance Baselines
+baselines:
+  latency_p50_ms: 45
+  latency_p95_ms: 120
+  latency_p99_ms: 250
+  error_rate: 0.02
+  throughput_rps: 1500
+  cache_hit_rate: 0.85
+  memory_usage_pct: 0.60
+
+# Features
+features:
+  neuro_learning_loop: true
+  self_improver: true
+  adaptive_refactor: true
+  semantic_cache: true
+  drift_detection: true
+  auto_patching: false  # Disabled in v4.1, enabled in v4.2

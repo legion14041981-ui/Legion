@@ -1,0 +1,173 @@
+# Legion v4.1.0 Monitoring Configuration
+# Prometheus + Grafana Setup
+
+version: "4.1.0"
+
+# Prometheus Configuration
+prometheus:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  retention_time: 30d
+  storage_path: "/var/lib/prometheus"
+  
+  scrape_configs:
+    - job_name: "legion"
+      static_configs:
+        - targets: ["localhost:9090"]
+      metrics_path: "/metrics"
+
+# Grafana Dashboards
+grafana:
+  port: 3000
+  refresh_rate: 10s
+  theme: "dark"
+  
+  dashboards:
+    - name: "Legion v4.1 Performance"
+      uid: "legion-perf-v41"
+      panels:
+        - title: "Cache Hit Rate"
+          type: "graph"
+          metric: "cache_hit_rate"
+          target: 0.85
+          
+        - title: "Memory Usage"
+          type: "gauge"
+          metric: "memory_usage_pct"
+          target: 0.60
+          
+        - title: "P95 Latency"
+          type: "graph"
+          metric: "latency_p95_ms"
+          target: 120
+          
+        - title: "Error Rate"
+          type: "graph"
+          metric: "error_rate"
+          target: 0.02
+          
+        - title: "Throughput"
+          type: "graph"
+          metric: "throughput_rps"
+          
+    - name: "Neuro-Learning Status"
+      uid: "legion-neuro-v41"
+      panels:
+        - title: "Model Drift Score"
+          type: "gauge"
+          metric: "drift_detection_score"
+          threshold_critical: 0.50
+          
+        - title: "Semantic Hash Validity"
+          type: "status"
+          metric: "semantic_hash_valid"
+          
+        - title: "Watchdog Alerts"
+          type: "stat"
+          metric: "watchdog_alerts_count"
+          
+        - title: "Proposal Quality"
+          type: "graph"
+          metric: "proposal_quality_score"
+
+# Alerting Rules
+alerting:
+  alert_manager:
+    url: "http://localhost:9093"
+    
+  rules:
+    # Performance Alerts
+    - name: "CacheHitRateLow"
+      condition: "cache_hit_rate < 0.83"
+      severity: "warning"
+      duration: "5m"
+      message: "Cache hit rate below 83% (target: 85%)"
+      
+    - name: "CacheHitRateCritical"
+      condition: "cache_hit_rate < 0.80"
+      severity: "critical"
+      duration: "2m"
+      message: "CRITICAL: Cache hit rate below 80%"
+      
+    - name: "MemoryUsageHigh"
+      condition: "memory_usage_pct > 0.62"
+      severity: "warning"
+      duration: "5m"
+      message: "Memory usage above 62% (target: 60%)"
+      
+    - name: "MemoryUsageCritical"
+      condition: "memory_usage_pct > 0.70"
+      severity: "critical"
+      duration: "2m"
+      message: "CRITICAL: Memory usage above 70%"
+      
+    - name: "LatencyP95High"
+      condition: "latency_p95_ms > 150"
+      severity: "warning"
+      duration: "5m"
+      message: "P95 latency above 150ms (target: 120ms)"
+      
+    # Neuro-Learning Alerts
+    - name: "ModelDriftDetected"
+      condition: "drift_detection_score > 0.30"
+      severity: "critical"
+      duration: "1m"
+      message: "CRITICAL: Model drift detected (>30%)"
+      
+    - name: "SemanticHashMismatch"
+      condition: "semantic_hash_valid == 0"
+      severity: "critical"
+      duration: "1m"
+      message: "CRITICAL: Semantic hash validation failed"
+      
+    - name: "WatchdogAlertsHigh"
+      condition: "watchdog_alerts_count > 5"
+      severity: "warning"
+      duration: "5m"
+      message: "Multiple watchdog alerts detected"
+
+# Metrics Export
+metrics:
+  - name: "cache_hit_rate"
+    type: "gauge"
+    help: "Cache hit rate (0-1)"
+    
+  - name: "memory_usage_pct"
+    type: "gauge"
+    help: "Memory usage percentage (0-1)"
+    
+  - name: "latency_p50_ms"
+    type: "histogram"
+    help: "P50 latency in milliseconds"
+    
+  - name: "latency_p95_ms"
+    type: "histogram"
+    help: "P95 latency in milliseconds"
+    
+  - name: "latency_p99_ms"
+    type: "histogram"
+    help: "P99 latency in milliseconds"
+    
+  - name: "error_rate"
+    type: "gauge"
+    help: "Error rate (0-1)"
+    
+  - name: "throughput_rps"
+    type: "gauge"
+    help: "Requests per second"
+    
+  - name: "drift_detection_score"
+    type: "gauge"
+    help: "Model drift score (0-1)"
+    
+  - name: "semantic_hash_valid"
+    type: "gauge"
+    help: "Semantic hash validity (0 or 1)"
+    
+  - name: "watchdog_alerts_count"
+    type: "counter"
+    help: "Number of watchdog alerts"
+    
+  - name: "proposal_quality_score"
+    type: "gauge"
+    help: "Neuro-learning proposal quality (0-100)"

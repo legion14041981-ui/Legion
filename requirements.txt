@@ -51,6 +51,12 @@ psutil>=6.0.0           # Resource monitoring & process management
 # Dependency management
 pip-tools>=7.3.0        # For pip-compile and requirements.lock generation
 
+# Ultra-Orchestrator v4.1.0 Dependencies (COMET_TERMINATOR Auto-Fix #2)
+msgpack>=1.0.0          # CompactConfigEncoder for 70% storage savings
+redis>=5.0.0            # L2 cache layer for ArchitectureCache
+aioredis>=2.0.0         # Async Redis client for non-blocking operations
+watchdog>=4.0.0         # File system monitoring (distinct from PerformanceWatchdog class)
+
 # Optional: Distributed backend (Phase 4)
 # ray[default]>=2.9.0   # Uncomment for distributed execution
 # redis>=5.0.0          # Uncomment for persistent state

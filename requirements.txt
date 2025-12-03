@@ -1,9 +1,9 @@
-# Legion Framework Dependencies - Production Ready v2.3.0
+# Legion Framework Dependencies - Production Ready v2.3.1 (Node A-1 Async Fix)
 
 # Core dependencies
 supabase==2.24.0  # Updated from 2.9.0 - security patches
 python-dotenv==1.2.1  # Updated from 1.0.1 - bug fixes
-httpx==0.27.2  # Updated - performance improvements
+httpx==0.27.2  # Updated - performance improvements, ASYNC HTTP
 
 # Google Sheets integration
 google-api-python-client>=2.152.0  # Updated
@@ -30,8 +30,9 @@ uvicorn[standard]==0.38.0  # Updated from 0.24.0 - performance
 pydantic>=2.10.4  # Updated - validation improvements
 pydantic-settings>=2.7.0  # Added - settings management
 
-# Database
-psycopg2-binary>=2.9.10  # Added - PostgreSQL adapter
+# Database - ASYNC MIGRATION (Node A-1)
+asyncpg>=0.30.0  # NEW: Async PostgreSQL driver for event loop compatibility
+psycopg2-binary>=2.9.10  # LEGACY: Keep during migration phase
 sqlalchemy>=2.0.36  # Added - ORM and connection pooling
 alembic>=1.14.0  # Added - database migrations
 
@@ -60,7 +61,7 @@ structlog>=24.4.0  # Added - structured logging
 # ruff>=0.14.7
 
 # OS Integration Layer
-aiofiles>=24.1.0  # Async file operations
+aiofiles>=24.1.0  # Async file operations - CRITICAL for Node A-1
 chromadb>=0.5.23  # Updated - vector store
 psutil>=6.1.1  # Updated - resource monitoring
 

@@ -1,67 +1,24 @@
-# Legion Framework - Development Dependencies
-# Install with: pip install -r requirements-dev.txt
-
-# Install production dependencies first
--r requirements.txt
-
-# Code formatting
-black>=25.11.0  # Updated - code formatter
-isort>=5.13.2  # Import sorting
-autoflake>=2.3.1  # Remove unused imports
-
-# Linting
-pylint>=3.3.4  # Updated - static analysis
-flake8>=7.1.1  # Style guide enforcement
-flake8-docstrings>=1.7.0  # Docstring linting
-flake8-annotations>=3.2.0  # Type annotation checking
-flake8-bugbear>=24.12.12  # Find likely bugs
-
-# Type checking
-mypy>=1.14.1  # Updated - static type checker
-types-requests>=2.32.0  # Type stubs
-types-redis>=4.6.0  # Type stubs
-
-# Modern linting
-ruff>=0.14.7  # Fast Python linter
-
 # Testing
-pytest>=8.3.4
-pytest-asyncio>=0.24.0
-pytest-cov>=6.0.0
-pytest-xdist>=3.6.1  # Parallel testing
-pytest-mock>=3.14.0  # Mocking
-pytest-benchmark>=5.1.0  # Performance benchmarking
-pytest-timeout>=2.3.1  # Test timeouts
-coverage[toml]>=7.6.10  # Coverage reporting
+pytest>=7.4.3
+pytest-asyncio>=0.23.3
+pytest-cov>=4.1.0
+pytest-benchmark>=4.0.0
+pytest-mock>=3.12.0
+faker>=22.0.0
 
-# Debugging
-ipdb>=0.13.13  # Enhanced debugger
-pdbpp>=0.10.3  # Better pdb
-
-# Documentation
-sphinx>=7.4.7  # Documentation generator
-sphinx-rtd-theme>=3.0.2  # ReadTheDocs theme
-sphinx-autodoc-typehints>=2.5.0  # Type hints in docs
-myst-parser>=4.0.0  # Markdown support
+# Code Quality
+ruff>=0.1.14
+black>=23.12.1
+mypy>=1.8.0
+pre-commit>=3.6.0
 
 # Security
-bandit>=1.8.0  # Security linter
-safety>=3.2.11  # Dependency security check
+bandit>=1.7.6
+safety>=3.0.1
 
-# Pre-commit hooks
-pre-commit>=4.0.1  # Git hooks framework
+# Documentation
+mkdocs>=1.5.3
+mkdocs-material>=9.5.3
 
-# Profiling
-memory-profiler>=0.61.0  # Memory profiling
-py-spy>=0.4.0  # Sampling profiler
-
-# Benchmarking
-locust>=2.33.3  # Load testing
-
-# Build tools
-build>=1.2.2  # Package builder
-twine>=6.0.1  # PyPI upload
-
-# Notebook support (optional)
-# jupyter>=1.1.1
-# ipykernel>=6.29.5
+# Load Testing
+locust>=2.20.0

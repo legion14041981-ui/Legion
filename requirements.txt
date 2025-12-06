@@ -33,8 +33,7 @@ opentelemetry-sdk>=1.22.0
 
 # AI/ML
 openai>=1.10.0
-anthropicsdk>=0.18.0
-
+anthropic>=0.18.0
 # Utilities
 python-dotenv>=1.0.0
 typer>=0.9.0

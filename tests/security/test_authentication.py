@@ -12,14 +12,16 @@ class TestJWTAuthentication:
     """Test JWT authentication flow"""
     
     @pytest.fixture
-    async def jwt_manager(self):
-        """Create JWT manager for testing"""
+    async def jwt_manager(self, mock_redis):
+        """Create JWT manager for testing with mock Redis"""
         manager = JWTManager(
             secret_key="test-secret-key-do-not-use-in-production",
-            redis_url="redis://localhost:6379/15",  # Test DB
+            redis_url="redis://localhost:6379/15",  # Not used (mocked)
             access_token_expire_minutes=15,
             refresh_token_expire_days=7
         )
+        # Inject mock Redis
+        manager.redis = mock_redis
         yield manager
         # Cleanup
         await manager.redis.close()

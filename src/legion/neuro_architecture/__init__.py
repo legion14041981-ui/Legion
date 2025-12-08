@@ -9,6 +9,7 @@ v4.1.0 additions:
 - Mobile Agent v4.1: Enhanced UI automation
 - Watchdog v4.1: 20 monitoring criteria
 """
+from typing import Optional
 
 from legion.neuro_architecture.generator import (
     ArchitectureGenerator,

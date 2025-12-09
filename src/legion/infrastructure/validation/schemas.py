@@ -46,7 +46,7 @@ class TaskCreateSchema(BaseModel):
 
 class TaskExecuteSchema(BaseModel):
     """Schema for task execution requests"""
-    task_id: str = Field(..., regex=r'^[a-zA-Z0-9_-]{1,64}$')
+    task_id: str = Field(..., pattern=r'^[a-zA-Z0-9_-]{1,64}$')
     command: Literal["start", "stop", "pause", "resume", "status"]
     parameters: dict = Field(default_factory=dict)
     
@@ -81,7 +81,7 @@ class TaskUpdateSchema(BaseModel):
 
 class AgentCreateSchema(BaseModel):
     """Schema for creating agents"""
-    name: str = Field(..., min_length=3, max_length=100, regex=r'^[a-zA-Z0-9_-]+$')
+    name: str = Field(..., min_length=3, max_length=100, pattern=r'^[a-zA-Z0-9_-]+$')
     agent_type: str = Field(..., min_length=3, max_length=50)
     config: dict = Field(default_factory=dict)
     
@@ -92,7 +92,7 @@ class AgentCreateSchema(BaseModel):
 
 class AgentExecuteSchema(BaseModel):
     """Schema for agent execution"""
-    agent_id: str = Field(..., regex=r'^[a-zA-Z0-9_-]{1,64}$')
+    agent_id: str = Field(..., pattern=r'^[a-zA-Z0-9_-]{1,64}$')
     action: str = Field(..., min_length=1, max_length=100)
     payload: dict = Field(default_factory=dict)
     

@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "legion-framework"
-version = "2.4.1"
+version = "2.5.0"
 description = "Multi-agent framework for intelligent task dispatching and coordination"
 readme = "README.md"
 requires-python = ">=3.9"
@@ -53,13 +53,19 @@ dev = [
     "pytest>=8.3.4",
     "pytest-cov>=6.0.0",
     "pytest-asyncio>=0.24.0",
+    "pytest-xdist>=3.5.0",
+    "pytest-timeout>=2.2.0",
     "sphinx>=7.4.7",
     "pre-commit>=4.0.1",
+    "bandit>=1.7.5",
+    "safety>=3.0.0",
+    "pip-audit>=2.6.0",
+    "detect-secrets>=1.4.0",
 ]
 
 [tool.black]
 line-length = 100
-target-version = ['py39', 'py310', 'py311']
+target-version = ['py39', 'py310', 'py311', 'py312']
 include = '\.pyi?$'
 exclude = '''
 /(
@@ -100,6 +106,8 @@ select = [
     "UP",   # pyupgrade
     "ARG",  # flake8-unused-arguments
     "SIM",  # flake8-simplify
+    "PERF", # perflint (performance)
+    "RUF",  # ruff-specific rules
 ]
 ignore = [
     "E501",  # line too long (handled by black)
@@ -114,12 +122,21 @@ ignore = [
 python_version = "3.9"
 warn_return_any = true
 warn_unused_configs = true
-disallow_untyped_defs = false
-ignore_missing_imports = true
+disallow_untyped_defs = true  # STRICT MODE: All defs must have types
+ignore_missing_imports = false  # STRICT: Require stubs for external libs
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+strict_optional = true
+check_untyped_defs = true
+allow_untyped_calls = false  # STRICT: All calls must have typed arguments
 
 [tool.pytest.ini_options]
 minversion = "8.0"
-addopts = "-ra -q --strict-markers --cov=src/legion --cov-report=term-missing --cov-report=html"
+addopts = "-ra -q --strict-markers --cov=src/legion --cov-report=term-missing --cov-report=html --cov-report=xml --cov-fail-under=85 -n auto --timeout=30"
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
@@ -128,8 +145,13 @@ markers = [
     "slow: marks tests as slow (deselect with '-m \"not slow\"')",
     "integration: marks tests as integration tests",
     "unit: marks tests as unit tests",
+    "security: marks tests as security tests",
+    "performance: marks tests as performance tests",
 ]
 asyncio_mode = "auto"
+console_output_style = "progress"
+log_cli = true
+log_cli_level = "INFO"
 
 [tool.coverage.run]
 source = ["src/legion"]
@@ -139,11 +161,14 @@ omit = [
     "*/__pycache__/*",
     "*/site-packages/*",
 ]
+branch = true
+parallel = true
 
 [tool.coverage.report]
 precision = 2
 show_missing = true
 skip_covered = false
+fail_under = 85  # STRICT: Minimum 85% coverage
 exclude_lines = [
     "pragma: no cover",
     "def __repr__",
@@ -152,11 +177,21 @@ exclude_lines = [
     "if __name__ == .__main__.:",
     "if TYPE_CHECKING:",
     "@abstractmethod",
+    "@abc.abstractmethod",
+    "except ImportError",
+    "except ModuleNotFoundError",
 ]
+
+[tool.coverage.html]
+directory = "htmlcov"
 
 [tool.bandit]
 exclude_dirs = ["tests", "scripts"]
-skips = ["B101", "B601"]
+skips = ["B101", "B601"]  # Skip assert_used and paramiko_calls
+recursive = true
+
+[tool.bandit.assert_used]
+skips = ["*/tests/*", "**/test_*.py"]
 
 [tool.pylint.messages_control]
 disable = [
@@ -169,3 +204,11 @@ disable = [
 
 [tool.pylint.format]
 max-line-length = 100
+good-names = ["i", "j", "k", "ex", "Run", "_"]
+
+[tool.pylint.basic]
+module-naming-style = "snake_case"
+
+[tool.pylint.design]
+max-attributes = 10
+max-arguments = 6

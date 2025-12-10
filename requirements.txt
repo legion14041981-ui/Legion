@@ -39,3 +39,6 @@ anthropic>=0.18.0
 python-dotenv>=1.0.0
 typer>=0.9.0
 rich>=13.7.0
+
+# Code Execution & Security
+RestrictedPython>=6.0

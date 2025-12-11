@@ -228,6 +228,15 @@ async def mock_http_client():
     return client
 
 
+@pytest.fixture
+def sample_agent():
+    """Create a simple test agent for testing."""
+    return SimpleTestAgent(
+        agent_id="test-agent",
+        name="Test Agent",
+        capabilities=["test"]
+    )
+
 # Pytest configuration
 def pytest_configure(config):
     """Configure pytest with custom markers."""

@@ -84,6 +84,31 @@ class EmailAgent(LegionAgent):
         
         self.logger.info(f"EmailAgent инициализирован: {name} ({agent_id})")
         self.logger.debug(f"SMTP: {self.smtp_host}:{self.smtp_port}, From: {self.from_email}")
+
+        def execute(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Execute email task synchronously (required by base class)."""
+        action = task_data.get("action", "send")
+        
+        if action == "send":
+            return asyncio.run(self.send_email(
+                to=task_data["to"],
+                subject=task_data["subject"],
+                body=task_data["body"],
+                html=task_data.get("html", False),
+                cc=task_data.get("cc"),
+                bcc=task_data.get("bcc"),
+                attachments=task_data.get("attachments")
+            ))
+        elif action == "send_bulk":
+            return asyncio.run(self.send_bulk(
+                recipients=task_data["to"],
+                subject=task_data["subject"],
+                body=task_data["body"],
+                html=task_data.get("html", False),
+                delay_seconds=task_data.get("delay_seconds", 1.0)
+            ))
+        else:
+            return {"success": False, "error": f"Unknown action: {action}"}
     
     async def send_email(
         self,

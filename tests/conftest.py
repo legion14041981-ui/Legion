@@ -22,7 +22,7 @@ class SimpleTestAgent(LegionAgent):
     """Simple agent for testing."""
     
     def __init__(self, agent_id: str, name: str = None, response: Dict[str, Any] = None):        super().__init__(agent_id)
-            super().__init__(agent_id)
+                    super().__init__(agent_id)
         self.name = name or agent_id
         self.response = response or {'status': 'completed'}
         self.call_count = 0

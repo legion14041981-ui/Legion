@@ -20,6 +20,7 @@ except ImportError:
     Browser = Any
     Page = Any
     BrowserContext = Any
+    async_playwright = None  # type: ignore
 
 from ..base_agent import LegionAgent
 

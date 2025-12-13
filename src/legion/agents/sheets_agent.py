@@ -71,6 +71,58 @@ class GoogleSheetsAgent(LegionAgent):
         
         # Инициализация API
         self._init_service()
+
+        def execute(self, task_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Execute Google Sheets task synchronously (required by base class).
+        
+        Task data format:
+            {
+                "action": "read" | "write" | "append" | "batch_update" | "clear",
+                "spreadsheet_id": "1abc...",
+                "range": "Sheet1!A1:B10",
+                "values": [[...]],  # for write/append/batch
+                "data": [{...}],    # for batch_update
+                "value_input_option": "USER_ENTERED"  # optional
+            }
+        
+        Returns:
+            {"success": bool, ...}
+        """
+        action = task_data.get("action", "read")
+        spreadsheet_id = task_data["spreadsheet_id"]
+        range_name = task_data.get("range", "Sheet1")
+        
+        if action == "read":
+            return asyncio.run(self.read_range(spreadsheet_id, range_name))
+        
+        elif action == "write":
+            return asyncio.run(self.write_range(
+                spreadsheet_id,
+                range_name,
+                task_data["values"],
+                task_data.get("value_input_option", "USER_ENTERED")
+            ))
+        
+        elif action == "append":
+            return asyncio.run(self.append_rows(
+                spreadsheet_id,
+                range_name,
+                task_data["values"],
+                task_data.get("value_input_option", "USER_ENTERED")
+            ))
+        
+        elif action == "batch_update":
+            return asyncio.run(self.batch_update(
+                spreadsheet_id,
+                task_data["data"]
+            ))
+        
+        elif action == "clear":
+            return asyncio.run(self.clear_range(spreadsheet_id, range_name))
+        
+        else:
+            return {"success": False, "error": f"Unknown action: {action}"}
     
     def _init_service(self):
         """Инициализация Google Sheets API service."""

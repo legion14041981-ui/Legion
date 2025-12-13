@@ -128,15 +128,30 @@ class DataAgent(LegionAgent):
         Raises:
             NotImplementedError: This method must be implemented by subclasses
         """
-        try:
-            # Execute the actual task
-            raise NotImplementedError(
-                "DataAgent.execute() must be implemented by subclasses. "
-                "Use specific methods like parse_json(), parse_csv(), etc."
-            )
-        finally:
-            # OPTIMIZED: Cleanup resources after execution
-            await self._cleanup_resources()
+        action = task_data.get("action", "parse")
+        
+        if action == "parse":
+            format_type = task_data.get("format", "json")
+            data = task_data["data"]
+            
+            if format_type == "json":
+                return asyncio.run(self.parse_json(data))
+            elif format_type == "csv":
+                return asyncio.run(self.parse_csv(data))
+            elif format_type == "xml":
+                return asyncio.run(self.parse_xml(data))
+            else:
+                return {"success": False, "error": f"Unsupported format: {format_type}"}
+        
+        elif action == "aggregate":
+            records = task_data.get("records", [])
+            field = task_data["field"]
+            op = task_data.get("op", "sum")
+            result = asyncio.run(self.aggregate(records, field, op))
+            return {"success": True, "result": result}
+        
+        else:
+            return {"success": False, "error": f"Unknown action: {action}"}            await self._cleanup_resources()
     
     async def _cleanup_resources(self) -> None:
         """

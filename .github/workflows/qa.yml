@@ -38,7 +38,7 @@ jobs:
           mutmut html
         
       - name: Upload mutation report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: mutation-report
           path: html/
@@ -67,7 +67,7 @@ jobs:
         
       - name: Upload fuzz results
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: fuzz-results
           path: .hypothesis/
@@ -99,7 +99,7 @@ jobs:
           python scripts/analyze_memory.py
           
       - name: Upload soak results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: soak-test-results
           path: reports/soak/
@@ -139,7 +139,7 @@ jobs:
           python scripts/compare_benchmarks.py benchmark-baseline.json benchmark-current.json
           
       - name: Save new baseline
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: benchmark-baseline
           path: benchmark-current.json
@@ -177,7 +177,7 @@ jobs:
           python scripts/validate_architecture.py
           
       - name: Upload dependency graph
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: dependency-graph
           path: dependencies.svg

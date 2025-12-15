@@ -41,7 +41,7 @@ jobs:
           python tools/baseline_snapshot.py --out ${{ env.SNAPSHOT_DIR }}/baseline-${{ github.sha }}.json
       
       - name: Upload snapshot
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: baseline-snapshot
           path: ${{ env.SNAPSHOT_DIR }}/*.json
@@ -74,7 +74,7 @@ jobs:
             --output ${{ env.PROPOSALS_DIR }}
       
       - name: Upload proposals
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: proposals-${{ matrix.task }}
           path: ${{ env.PROPOSALS_DIR }}/*.json
@@ -116,7 +116,7 @@ jobs:
           done
       
       - name: Upload training results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: proxy-training-results
           path: ${{ env.RUNS_DIR }}/**/metrics.json
@@ -150,7 +150,7 @@ jobs:
             --output ${{ env.EVALS_DIR }}
       
       - name: Upload evaluation results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: evaluation-results
           path: ${{ env.EVALS_DIR }}/*.json

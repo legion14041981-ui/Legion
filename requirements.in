@@ -24,7 +24,7 @@ langchain>=0.1.0
 langchain-core>=0.1.0
 
 # MCP Protocol
-fastapi==0.104.1
+fastapi==0.127.0
 uvicorn[standard]==0.24.0
 pydantic>=2.0.0
 
